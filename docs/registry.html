@@ -1,0 +1,3531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Dataset Registry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #080b12;
+    --bg-subtle: #0c1018;
+    --surface: #111827;
+    --surface-hover: #162032;
+    --surface-raised: #1a2540;
+    --border: #1e2d4a;
+    --border-hover: #2d4a7a;
+    --text: #f0f4fc;
+    --text-secondary: #94a3c0;
+    --text-muted: #5e6e8a;
+    --accent: #6c9fff;
+    --accent-bright: #89b4ff;
+    --accent-glow: rgba(108, 159, 255, 0.12);
+    --accent-glow-strong: rgba(108, 159, 255, 0.25);
+    --green: #34d399;
+    --green-dim: rgba(52, 211, 153, 0.12);
+    --orange: #fbbf24;
+    --orange-dim: rgba(251, 191, 36, 0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.12);
+    --rose: #fb7185;
+    --rose-dim: rgba(251, 113, 133, 0.10);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45, 212, 191, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .page-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+  }
+
+  /* ---- Header ---- */
+  .header {
+    text-align: center;
+    padding: 3rem 1rem 2.5rem;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .logo {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent-bright) 50%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .subtitle {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+
+  /* Stats */
+  .stats-bar {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1.5rem;
+    text-align: center;
+    min-width: 120px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .stat-card .num {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--accent-bright);
+    line-height: 1.2;
+  }
+  .stat-card .label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-top: 0.15rem;
+  }
+
+  /* ---- Filters ---- */
+  .filters {
+    display: flex;
+    gap: 0.6rem;
+    margin: 2rem 0 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .filters.scrolled {
+    border-bottom-color: var(--border);
+    background: rgba(8, 11, 18, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+  .filters input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 0.85rem 0.6rem 2.4rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .filters input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .filters input[type="text"]::placeholder { color: var(--text-muted); }
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.6rem 2rem 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235e6e8a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    transition: border-color 0.2s;
+    min-width: 140px;
+  }
+  .filter-select:focus { border-color: var(--accent); }
+  .filter-select:hover { border-color: var(--border-hover); }
+  .result-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* ---- Grid ---- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 0.85rem;
+  }
+
+  /* ---- Card ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow);
+  }
+  .card:hover::before { opacity: 1; }
+  .card.open { box-shadow: var(--shadow-lg); }
+  .card.open::before { opacity: 1; }
+
+  .card-header {
+    padding: 1.1rem 1.25rem 0.6rem;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .card-header:hover { background: var(--surface-hover); }
+  .card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .card-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background: rgba(94, 110, 138, 0.12);
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .card-desc {
+    color: var(--text-secondary);
+    font-size: 0.825rem;
+    margin-top: 0.35rem;
+    line-height: 1.45;
+  }
+  .card-badges {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+  }
+  .badge-format { color: var(--green); background: var(--green-dim); border-color: rgba(52,211,153,0.2); }
+  .badge-embodiment { color: var(--purple); background: var(--purple-dim); border-color: rgba(167,139,250,0.2); }
+  .badge-demo { color: var(--orange); background: var(--orange-dim); border-color: rgba(251,191,36,0.2); }
+  .badge-tag { color: var(--text-secondary); background: rgba(94,110,138,0.1); border-color: rgba(94,110,138,0.15); }
+  .badge-scale { color: var(--teal); background: var(--teal-dim); border-color: rgba(45,212,191,0.2); }
+
+  .chevron {
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+    width: 20px;
+    height: 20px;
+  }
+  .card.open .chevron { transform: rotate(180deg); }
+
+  .card-meta {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1.25rem 0.85rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(94, 110, 138, 0.06);
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-xs);
+  }
+  .meta-item strong { color: var(--text-secondary); font-weight: 600; }
+  .meta-dot { color: var(--text-muted); opacity: 0.3; }
+
+  /* ---- Accordion body ---- */
+  .card-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+  .card.open .card-body {
+    grid-template-rows: 1fr;
+  }
+  .card-body-inner {
+    overflow: hidden;
+    border-top: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .card.open .card-body-inner {
+    border-top-color: var(--border);
+  }
+  .card-body-content {
+    padding: 1.15rem 1.25rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  /* ---- Detail sections ---- */
+  .detail-section {}
+  .detail-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+  }
+
+  .source-list { display: flex; flex-direction: column; gap: 0.35rem; }
+  .source-item {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.825rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    transition: border-color 0.15s;
+  }
+  .source-item:hover { border-color: var(--border-hover); }
+  .source-item a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .source-item a:hover { color: var(--accent-bright); text-decoration: underline; }
+  .source-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(94,110,138,0.15);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .source-note {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+  }
+
+  /* ---- Commands ---- */
+  .cmd-grid { display: flex; flex-direction: column; gap: 0.3rem; }
+  .cmd-row {
+    display: flex;
+    align-items: center;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xs);
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .cmd-row:hover { border-color: var(--border-hover); }
+  .cmd-row code {
+    flex: 1;
+    padding: 0.5rem 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--green);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .copy-btn {
+    background: none;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .copy-btn:hover { color: var(--accent); background: var(--accent-glow); }
+  .copy-btn.copied { color: var(--green); background: var(--green-dim); }
+
+  /* ---- Paper link ---- */
+  .paper-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+    background: var(--accent-glow);
+    border-radius: var(--radius-xs);
+    border: 1px solid rgba(108, 159, 255, 0.15);
+    transition: all 0.15s;
+  }
+  .paper-link:hover {
+    background: var(--accent-glow-strong);
+    border-color: rgba(108, 159, 255, 0.3);
+    color: var(--accent-bright);
+  }
+
+  .no-results {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 4rem 1rem;
+    font-size: 1.1rem;
+  }
+  .no-results .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    padding: 3rem 0 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* SVG icons inline */
+  .icon { display: inline-flex; vertical-align: middle; }
+
+  @media (max-width: 540px) {
+    .page-wrapper { padding: 1rem; }
+    .grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.75rem; }
+    .stat-card { min-width: 90px; padding: 0.65rem 1rem; }
+    .stat-card .num { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+<div class="header">
+  <div class="logo">Forge</div>
+  <h1>Dataset Registry</h1>
+  <p class="subtitle">Curated robotics datasets for training, evaluation, and research</p>
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num">23</div>
+      <div class="label">Datasets</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">7</div>
+      <div class="label">Demo-Ready</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">3.6M</div>
+      <div class="label">Total Episodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">5</div>
+      <div class="label">Formats</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">12</div>
+      <div class="label">Robots</div>
+    </div>
+  </div>
+</div>
+
+<div class="filters" id="filterBar">
+  <div class="search-wrap">
+    <span class="search-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input type="text" id="search" placeholder="Search by name, robot, task, tag..." oninput="filterCards()">
+  </div>
+  <select class="filter-select" id="formatFilter" onchange="filterCards()">
+    <option value="">All Formats</option>
+    <option value="hdf5">hdf5</option>
+    <option value="lerobot">lerobot</option>
+    <option value="lerobot-v2">lerobot-v2</option>
+    <option value="other">other</option>
+    <option value="rlds">rlds</option>
+    
+  </select>
+  <select class="filter-select" id="tagFilter" onchange="filterCards()">
+    <option value="">All Tags</option>
+    <option value="bi_manual">bi manual</option>
+    <option value="contact_rich">contact rich</option>
+    <option value="humanoid">humanoid</option>
+    <option value="language_conditioned">language conditioned</option>
+    <option value="large_scale">large scale</option>
+    <option value="manipulation">manipulation</option>
+    <option value="mobile_manipulation">mobile manipulation</option>
+    <option value="multi_task">multi task</option>
+    <option value="real_world">real world</option>
+    <option value="simulation">simulation</option>
+    <option value="single_task">single task</option>
+    
+  </select>
+  <select class="filter-select" id="embodimentFilter" onchange="filterCards()">
+    <option value="">All Robots</option>
+    <option value="agibot_g1">agibot_g1</option>
+    <option value="aloha">aloha</option>
+    <option value="flexiv">flexiv</option>
+    <option value="franka">franka</option>
+    <option value="google_robot">google_robot</option>
+    <option value="jaco">jaco</option>
+    <option value="kuka">kuka</option>
+    <option value="sawyer">sawyer</option>
+    <option value="simulated">simulated</option>
+    <option value="ur5">ur5</option>
+    <option value="widowx">widowx</option>
+    <option value="xarm">xarm</option>
+    
+  </select>
+  <select class="filter-select" id="demoFilter" onchange="filterCards()">
+    <option value="">All Datasets</option>
+    <option value="demo">Demo-Suitable Only</option>
+  </select>
+  <span class="result-count" id="resultCount">23 datasets</span>
+</div>
+
+<div class="grid" id="grid">
+
+<div class="card" data-id="open_x_embodiment" data-format="rlds" data-tags="manipulation,real_world,multi_task,large_scale,language_conditioned" data-demo="false" data-embodiment="google_robot,franka,widowx,jaco,sawyer,ur5,kuka" data-search="open_x_embodiment Open X-Embodiment Aggregate dataset spanning 60+ constituent datasets, 22 robot platforms, and 527 manipulation skills. The largest open robotics dataset collection. google_robot franka widowx jaco sawyer ur5 kuka manipulation real_world multi_task large_scale language_conditioned pick_place push pour wipe drawer multi_task rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">Open X-Embodiment</span>
+        <span class="card-id">open_x_embodiment</span>
+      </div>
+      <div class="card-desc">Aggregate dataset spanning 60+ constituent datasets, 22 robot platforms, and 527 manipulation skills. The largest open robotics dataset collection.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">google_robot</span><span class="badge badge-embodiment">franka</span><span class="badge badge-embodiment">widowx</span><span class="badge badge-embodiment">jaco</span><span class="badge badge-embodiment">sawyer</span><span class="badge badge-embodiment">ur5</span><span class="badge badge-embodiment">kuka</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>2,400,000</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Apache-2.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2310.08864" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2310.08864
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span><span class="badge badge-tag">language conditioned</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">pour</span><span class="badge badge-tag">wipe</span><span class="badge badge-tag">drawer</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics</span>
+              
+              <span class="source-note">Each constituent dataset is a separate RLDS dataset under this bucket</span>
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/jxu124/OpenX-Embodiment" target="_blank" rel="noopener">jxu124/OpenX-Embodiment</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect open_x_embodiment</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect open_x_embodiment')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality open_x_embodiment</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality open_x_embodiment')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert open_x_embodiment ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert open_x_embodiment ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="droid" data-format="rlds" data-tags="manipulation,real_world,multi_task,large_scale" data-demo="false" data-embodiment="franka" data-search="droid DROID Large-scale in-the-wild manipulation dataset with 76K+ episodes across 564 scenes and 52 buildings. Multi-camera Franka teleoperation. franka manipulation real_world multi_task large_scale pick_place push wipe drawer multi_task rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">DROID</span>
+        <span class="card-id">droid</span>
+      </div>
+      <div class="card-desc">Large-scale in-the-wild manipulation dataset with 76K+ episodes across 564 scenes and 52 buildings. Multi-camera Franka teleoperation.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>76,000</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>350</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>CC-BY-4.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2403.12945
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">wipe</span><span class="badge badge-tag">drawer</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/droid</span>
+              
+              <span class="source-note">RLDS format</span>
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/cadene/droid" target="_blank" rel="noopener">cadene/droid</a>
+              
+              <span class="source-note">Full dataset in LeRobot format (~400GB)</span>
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect droid</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect droid')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality droid</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality droid')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert droid ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert droid ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="bridge_v2" data-format="rlds" data-tags="manipulation,real_world,multi_task,large_scale" data-demo="false" data-embodiment="widowx" data-search="bridge_v2 Bridge V2 Large-scale WidowX tabletop manipulation dataset with 53K+ episodes across 24 environments and 13 skills. widowx manipulation real_world multi_task large_scale pick_place push wipe drawer rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">Bridge V2</span>
+        <span class="card-id">bridge_v2</span>
+      </div>
+      <div class="card-desc">Large-scale WidowX tabletop manipulation dataset with 53K+ episodes across 24 environments and 13 skills.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">widowx</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>53,192</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>105</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2308.12952" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2308.12952
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">wipe</span><span class="badge badge-tag">drawer</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/bridge/0.1.0</span>
+              
+              <span class="source-note">RLDS format</span>
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/IPEC-COMMUNITY/bridge_orig_lerobot" target="_blank" rel="noopener">IPEC-COMMUNITY/bridge_orig_lerobot</a>
+              
+              <span class="source-note">LeRobot format conversion</span>
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect bridge_v2</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect bridge_v2')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality bridge_v2</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality bridge_v2')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert bridge_v2 ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert bridge_v2 ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="roboset" data-format="rlds" data-tags="manipulation,real_world,multi_task" data-demo="false" data-embodiment="franka" data-search="roboset RoboSet Franka multi-task dataset with 12 skills across 38 kitchen tasks. Includes teleoperated, kinesthetic, and heuristic demonstrations. franka manipulation real_world multi_task pick_place pour wipe multi_task rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">RoboSet</span>
+        <span class="card-id">roboset</span>
+      </div>
+      <div class="card-desc">Franka multi-task dataset with 12 skills across 38 kitchen tasks. Includes teleoperated, kinesthetic, and heuristic demonstrations.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>100,000</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2309.01918" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2309.01918
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">pour</span><span class="badge badge-tag">wipe</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/robo_set</span>
+              
+              <span class="source-note">RLDS format via TFDS</span>
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/jdvakil/RoboSet-Teleoperation" target="_blank" rel="noopener">jdvakil/RoboSet-Teleoperation</a>
+              
+              <span class="source-note">Teleoperation subset only</span>
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect roboset</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect roboset')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality roboset</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality roboset')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert roboset ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert roboset ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="aloha_sim_transfer_cube" data-format="lerobot" data-tags="manipulation,bi_manual,simulation,single_task" data-demo="true" data-embodiment="aloha" data-search="aloha_sim_transfer_cube ALOHA Sim Transfer Cube Simulated bimanual cube transfer task with 50 human-collected episodes. Ideal for quick ALOHA experiments. aloha manipulation bi_manual simulation single_task pick_place lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">ALOHA Sim Transfer Cube</span>
+        <span class="card-id">aloha_sim_transfer_cube</span>
+      </div>
+      <div class="card-desc">Simulated bimanual cube transfer task with 50 human-collected episodes. Ideal for quick ALOHA experiments.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">aloha</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>50</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2304.13705
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/aloha_sim_transfer_cube_human" target="_blank" rel="noopener">lerobot/aloha_sim_transfer_cube_human</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect aloha_sim_transfer_cube</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_sim_transfer_cube')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality aloha_sim_transfer_cube</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality aloha_sim_transfer_cube')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert aloha_sim_transfer_cube ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert aloha_sim_transfer_cube ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect aloha_sim_transfer_cube --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_sim_transfer_cube --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="aloha_sim_insertion" data-format="lerobot" data-tags="manipulation,bi_manual,simulation,single_task" data-demo="true" data-embodiment="aloha" data-search="aloha_sim_insertion ALOHA Sim Insertion Simulated bimanual peg insertion task with 50 human-collected episodes. aloha manipulation bi_manual simulation single_task insertion lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">ALOHA Sim Insertion</span>
+        <span class="card-id">aloha_sim_insertion</span>
+      </div>
+      <div class="card-desc">Simulated bimanual peg insertion task with 50 human-collected episodes.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">aloha</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>50</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2304.13705
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">insertion</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/aloha_sim_insertion_human" target="_blank" rel="noopener">lerobot/aloha_sim_insertion_human</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect aloha_sim_insertion</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_sim_insertion')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality aloha_sim_insertion</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality aloha_sim_insertion')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert aloha_sim_insertion ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert aloha_sim_insertion ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect aloha_sim_insertion --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_sim_insertion --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="aloha_static_tape" data-format="lerobot" data-tags="manipulation,bi_manual,real_world,single_task" data-demo="true" data-embodiment="aloha" data-search="aloha_static_tape ALOHA Static Tape Real bimanual tape dispensing task with 50 teleoperated episodes on static ALOHA. aloha manipulation bi_manual real_world single_task manipulation lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">ALOHA Static Tape</span>
+        <span class="card-id">aloha_static_tape</span>
+      </div>
+      <div class="card-desc">Real bimanual tape dispensing task with 50 teleoperated episodes on static ALOHA.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">aloha</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>50</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2304.13705
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/aloha_static_tape" target="_blank" rel="noopener">lerobot/aloha_static_tape</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect aloha_static_tape</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_static_tape')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality aloha_static_tape</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality aloha_static_tape')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert aloha_static_tape ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert aloha_static_tape ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect aloha_static_tape --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_static_tape --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="aloha_mobile_cabinet" data-format="lerobot" data-tags="manipulation,bi_manual,mobile_manipulation,real_world,single_task" data-demo="true" data-embodiment="aloha" data-search="aloha_mobile_cabinet ALOHA Mobile Cabinet Real mobile bimanual cabinet manipulation with 85 episodes on Mobile ALOHA. aloha manipulation bi_manual mobile_manipulation real_world single_task drawer manipulation lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">ALOHA Mobile Cabinet</span>
+        <span class="card-id">aloha_mobile_cabinet</span>
+      </div>
+      <div class="card-desc">Real mobile bimanual cabinet manipulation with 85 episodes on Mobile ALOHA.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">aloha</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>85</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2401.02117" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2401.02117
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">mobile manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">drawer</span><span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/aloha_mobile_cabinet" target="_blank" rel="noopener">lerobot/aloha_mobile_cabinet</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect aloha_mobile_cabinet</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_mobile_cabinet')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality aloha_mobile_cabinet</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality aloha_mobile_cabinet')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert aloha_mobile_cabinet ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert aloha_mobile_cabinet ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect aloha_mobile_cabinet --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_mobile_cabinet --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="agibot_world_alpha" data-format="lerobot-v2" data-tags="manipulation,bi_manual,humanoid,real_world,multi_task,large_scale" data-demo="false" data-embodiment="agibot_g1" data-search="agibot_world_alpha AgiBot World Alpha Large-scale dual-arm humanoid manipulation dataset with 92K+ trajectories across 217 tasks and 87 skills. agibot_g1 manipulation bi_manual humanoid real_world multi_task large_scale pick_place pour multi_task lerobot-v2">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">AgiBot World Alpha</span>
+        <span class="card-id">agibot_world_alpha</span>
+      </div>
+      <div class="card-desc">Large-scale dual-arm humanoid manipulation dataset with 92K+ trajectories across 217 tasks and 87 skills.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot-v2</span>
+        <span class="badge badge-embodiment">agibot_g1</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>92,214</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>2976</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>CC-BY-NC-SA-4.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2503.06669" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2503.06669
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">humanoid</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">pour</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/agibot-world/AgiBotWorld-Alpha" target="_blank" rel="noopener">agibot-world/AgiBotWorld-Alpha</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect agibot_world_alpha</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect agibot_world_alpha')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality agibot_world_alpha</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality agibot_world_alpha')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert agibot_world_alpha ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert agibot_world_alpha ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="rt1_fractal" data-format="rlds" data-tags="manipulation,real_world,multi_task,large_scale" data-demo="false" data-embodiment="google_robot" data-search="rt1_fractal RT-1 / Fractal Google Robot tabletop manipulation dataset with 87K+ episodes, used to train RT-1. 17 object categories. google_robot manipulation real_world multi_task large_scale pick_place push rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">RT-1 / Fractal</span>
+        <span class="card-id">rt1_fractal</span>
+      </div>
+      <div class="card-desc">Google Robot tabletop manipulation dataset with 87K+ episodes, used to train RT-1. 17 object categories.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">google_robot</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>87,212</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Apache-2.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2212.06817
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/fractal20220817_data/0.1.0</span>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect rt1_fractal</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect rt1_fractal')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality rt1_fractal</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality rt1_fractal')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert rt1_fractal ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert rt1_fractal ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="rh20t" data-format="other" data-tags="manipulation,contact_rich,real_world,multi_task,large_scale" data-demo="false" data-embodiment="franka,ur5,kuka,flexiv" data-search="rh20t RH20T Contact-rich manipulation dataset with 110K+ episodes across 4 robots and 147 skills. Includes force/torque and audio. franka ur5 kuka flexiv manipulation contact_rich real_world multi_task large_scale pick_place manipulation multi_task other">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">RH20T</span>
+        <span class="card-id">rh20t</span>
+      </div>
+      <div class="card-desc">Contact-rich manipulation dataset with 110K+ episodes across 4 robots and 147 skills. Includes force/torque and audio.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">other</span>
+        <span class="badge badge-embodiment">franka</span><span class="badge badge-embodiment">ur5</span><span class="badge badge-embodiment">kuka</span><span class="badge badge-embodiment">flexiv</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>110,000</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Research use</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2307.00595" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2307.00595
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">contact rich</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span><span class="badge badge-tag">large scale</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">manipulation</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/fredfang/RH20T" target="_blank" rel="noopener">fredfang/RH20T</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect rh20t</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect rh20t')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality rh20t</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality rh20t')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert rh20t ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert rh20t ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="libero" data-format="hdf5" data-tags="manipulation,simulation,multi_task" data-demo="false" data-embodiment="franka" data-search="libero LIBERO Simulated continual learning benchmark with 130 tasks across 4 suites (Spatial, Object, Goal, LIBERO-10). franka manipulation simulation multi_task pick_place drawer multi_task hdf5">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">LIBERO</span>
+        <span class="card-id">libero</span>
+      </div>
+      <div class="card-desc">Simulated continual learning benchmark with 130 tasks across 4 suites (Spatial, Object, Goal, LIBERO-10).</div>
+      <div class="card-badges">
+        <span class="badge badge-format">hdf5</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>4,500</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>10</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>CC-BY-4.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2306.03310" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2306.03310
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">drawer</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/physical-intelligence/libero" target="_blank" rel="noopener">physical-intelligence/libero</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect libero</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect libero')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality libero</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality libero')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert libero ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert libero ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="furniturebench" data-format="other" data-tags="manipulation,real_world,multi_task" data-demo="false" data-embodiment="franka" data-search="furniturebench FurnitureBench Long-horizon furniture assembly benchmark with 5K+ episodes across 8 assembly tasks at 3 difficulty levels. franka manipulation real_world multi_task assembly other">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">FurnitureBench</span>
+        <span class="card-id">furniturebench</span>
+      </div>
+      <div class="card-desc">Long-horizon furniture assembly benchmark with 5K+ episodes across 8 assembly tasks at 3 difficulty levels.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">other</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>5,000</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>200</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Research use</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2305.12821" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2305.12821
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">assembly</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">http</span>
+              
+              <a href="https://furniturebench.github.io/" target="_blank" rel="noopener">https://furniturebench.github.io/</a>
+              
+              <span class="source-note">Download links on project page (Google Drive)</span>
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect furniturebench</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect furniturebench')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality furniturebench</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality furniturebench')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert furniturebench ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert furniturebench ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="rlbench" data-format="other" data-tags="manipulation,simulation,multi_task" data-demo="false" data-embodiment="franka" data-search="rlbench RLBench Simulated benchmark with 100 manipulation tasks in CoppeliaSim. Procedurally generated demonstrations. franka manipulation simulation multi_task pick_place push drawer multi_task other">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">RLBench</span>
+        <span class="card-id">rlbench</span>
+      </div>
+      <div class="card-desc">Simulated benchmark with 100 manipulation tasks in CoppeliaSim. Procedurally generated demonstrations.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">other</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>10,000</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Research use</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/1909.12271" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:1909.12271
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">drawer</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/hqfang/rlbench-18-tasks" target="_blank" rel="noopener">hqfang/rlbench-18-tasks</a>
+              
+              <span class="source-note">Community upload of 18-task subset</span>
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect rlbench</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect rlbench')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality rlbench</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality rlbench')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert rlbench ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert rlbench ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="metaworld" data-format="lerobot" data-tags="manipulation,simulation,multi_task" data-demo="false" data-embodiment="sawyer" data-search="metaworld MetaWorld Simulated Sawyer benchmark with 50 tabletop manipulation tasks for meta/multi-task learning. sawyer manipulation simulation multi_task pick_place push drawer assembly multi_task lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">MetaWorld</span>
+        <span class="card-id">metaworld</span>
+      </div>
+      <div class="card-desc">Simulated Sawyer benchmark with 50 tabletop manipulation tasks for meta/multi-task learning.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">sawyer</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>50,000</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/1910.10897" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:1910.10897
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">drawer</span><span class="badge badge-tag">assembly</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/metaworld_mt50" target="_blank" rel="noopener">lerobot/metaworld_mt50</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect metaworld</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect metaworld')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality metaworld</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality metaworld')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert metaworld ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert metaworld ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="language_table" data-format="rlds" data-tags="manipulation,real_world,language_conditioned,large_scale,single_task" data-demo="false" data-embodiment="xarm" data-search="language_table Language Table Language-conditioned block pushing with 600K+ real episodes and open-vocabulary instructions. xarm manipulation real_world language_conditioned large_scale single_task push rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">Language Table</span>
+        <span class="card-id">language_table</span>
+      </div>
+      <div class="card-desc">Language-conditioned block pushing with 600K+ real episodes and open-vocabulary instructions.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">xarm</span>
+        
+        
+          <span class="badge badge-scale">large</span>
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>600,000</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>2700</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Apache-2.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2210.06407" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2210.06407
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">language conditioned</span><span class="badge badge-tag">large scale</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">push</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/language_table</span>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect language_table</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect language_table')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality language_table</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality language_table')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert language_table ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert language_table ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="bc_z" data-format="rlds" data-tags="manipulation,real_world,language_conditioned,multi_task" data-demo="false" data-embodiment="widowx" data-search="bc_z BC-Z Language-conditioned WidowX manipulation with 26K episodes across 100 tasks for zero-shot generalization. widowx manipulation real_world language_conditioned multi_task pick_place push multi_task rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">BC-Z</span>
+        <span class="card-id">bc_z</span>
+      </div>
+      <div class="card-desc">Language-conditioned WidowX manipulation with 26K episodes across 100 tasks for zero-shot generalization.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">widowx</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>25,877</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Apache-2.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2202.02005" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2202.02005
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">language conditioned</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">push</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/bc_z</span>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect bc_z</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect bc_z')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality bc_z</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality bc_z')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert bc_z ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert bc_z ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="jaco_play" data-format="rlds" data-tags="manipulation,real_world,language_conditioned,single_task" data-demo="false" data-embodiment="jaco" data-search="jaco_play Jaco Play Teleoperated play data on Kinova Jaco 2 with language annotations. 1K+ tabletop manipulation episodes. jaco manipulation real_world language_conditioned single_task manipulation rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">Jaco Play</span>
+        <span class="card-id">jaco_play</span>
+      </div>
+      <div class="card-desc">Teleoperated play data on Kinova Jaco 2 with language annotations. 1K+ tabletop manipulation episodes.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">jaco</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>1,085</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>3</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Apache-2.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2310.08864" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2310.08864
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">language conditioned</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/jaco_play</span>
+              
+              
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/jaco_play" target="_blank" rel="noopener">lerobot/jaco_play</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect jaco_play</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect jaco_play')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality jaco_play</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality jaco_play')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert jaco_play ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert jaco_play ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="taco_play" data-format="rlds" data-tags="manipulation,real_world,language_conditioned,multi_task" data-demo="false" data-embodiment="franka" data-search="taco_play TACO Play Task-agnostic Franka play data with language annotations. 3.6K episodes of tabletop manipulation. franka manipulation real_world language_conditioned multi_task manipulation multi_task rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">TACO Play</span>
+        <span class="card-id">taco_play</span>
+      </div>
+      <div class="card-desc">Task-agnostic Franka play data with language annotations. 3.6K episodes of tabletop manipulation.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>3,600</strong> episodes
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <strong>7</strong>h
+    </span>
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>CC-BY-4.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2209.08959" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2209.08959
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">language conditioned</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/taco_play</span>
+              
+              
+              
+            </div>
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/taco_play" target="_blank" rel="noopener">lerobot/taco_play</a>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect taco_play</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect taco_play')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality taco_play</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality taco_play')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert taco_play ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert taco_play ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="stanford_hydra" data-format="rlds" data-tags="manipulation,real_world" data-demo="false" data-embodiment="franka" data-search="stanford_hydra Stanford Hydra Multi-arm manipulation dataset from Stanford ILIAD lab, converted to RLDS format. franka manipulation real_world manipulation rlds">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">Stanford Hydra</span>
+        <span class="card-id">stanford_hydra</span>
+      </div>
+      <div class="card-desc">Multi-arm manipulation dataset from Stanford ILIAD lab, converted to RLDS format.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">rlds</span>
+        <span class="badge badge-embodiment">franka</span>
+        
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>Research use</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">gcs</span>
+              
+              <span style="color:var(--text-secondary)">gs://gresearch/robotics/stanford_hydra_dataset_converted_externally_to_rlds</span>
+              
+              
+              
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect stanford_hydra</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect stanford_hydra')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality stanford_hydra</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality stanford_hydra')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert stanford_hydra ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert stanford_hydra ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="pusht" data-format="lerobot" data-tags="manipulation,simulation,single_task" data-demo="true" data-embodiment="simulated" data-search="pusht PushT Simple 2D T-block pushing task with 206 episodes. The canonical LeRobot demo dataset. simulated manipulation simulation single_task push lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">PushT</span>
+        <span class="card-id">pusht</span>
+      </div>
+      <div class="card-desc">Simple 2D T-block pushing task with 206 episodes. The canonical LeRobot demo dataset.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">simulated</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>206</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">simulation</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">push</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/pusht" target="_blank" rel="noopener">lerobot/pusht</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect pusht</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect pusht')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality pusht</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality pusht')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert pusht ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert pusht ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect pusht --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect pusht --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Notes</div>
+          <div style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5;">206 episodes — slightly above 100 but universally used as a tiny demo dataset</div>
+        </div>
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="droid_100" data-format="lerobot" data-tags="manipulation,real_world,multi_task" data-demo="true" data-embodiment="franka" data-search="droid_100 DROID 100 100-episode subset of DROID in LeRobot format. Ideal for quick experiments and CI. franka manipulation real_world multi_task pick_place manipulation lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">DROID 100</span>
+        <span class="card-id">droid_100</span>
+      </div>
+      <div class="card-desc">100-episode subset of DROID in LeRobot format. Ideal for quick experiments and CI.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">franka</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>100</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>CC-BY-4.0</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2403.12945
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">multi task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">pick place</span><span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/droid_100" target="_blank" rel="noopener">lerobot/droid_100</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect droid_100</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect droid_100')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality droid_100</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality droid_100')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert droid_100 ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert droid_100 ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect droid_100 --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect droid_100 --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-id="aloha_static_coffee" data-format="lerobot" data-tags="manipulation,bi_manual,real_world,single_task" data-demo="true" data-embodiment="aloha" data-search="aloha_static_coffee ALOHA Static Coffee Real bimanual coffee preparation task with 50 teleoperated episodes on static ALOHA. aloha manipulation bi_manual real_world single_task manipulation lerobot">
+  <div class="card-header" onclick="toggleCard(this)">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title-row">
+        <span class="card-title">ALOHA Static Coffee</span>
+        <span class="card-id">aloha_static_coffee</span>
+      </div>
+      <div class="card-desc">Real bimanual coffee preparation task with 50 teleoperated episodes on static ALOHA.</div>
+      <div class="card-badges">
+        <span class="badge badge-format">lerobot</span>
+        <span class="badge badge-embodiment">aloha</span>
+        <span class="badge badge-demo">demo</span>
+        
+          
+        
+      </div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="card-meta">
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <strong>50</strong> episodes
+    </span>
+    
+    
+    
+    <span class="meta-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <strong>MIT</strong>
+    </span>
+    
+  </div>
+
+  <div class="card-body">
+    <div class="card-body-inner">
+      <div class="card-body-content">
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Paper</div>
+          <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener" class="paper-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            arXiv:2304.13705
+          </a>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Tags</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span><span class="badge badge-tag">bi manual</span><span class="badge badge-tag">real world</span><span class="badge badge-tag">single task</span>
+          </div>
+        </div>
+        
+
+        
+        <div class="detail-section">
+          <div class="detail-label">Task Types</div>
+          <div class="card-badges">
+            <span class="badge badge-tag">manipulation</span>
+          </div>
+        </div>
+        
+
+        <div class="detail-section">
+          <div class="detail-label">Sources</div>
+          <div class="source-list">
+            
+            <div class="source-item">
+              <span class="source-type">hf_hub</span>
+              
+              <a href="https://huggingface.co/datasets/lerobot/aloha_static_coffee" target="_blank" rel="noopener">lerobot/aloha_static_coffee</a>
+              
+              
+              <span class="badge badge-demo" style="font-size:0.6rem">demo subset</span>
+            </div>
+            
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-label">Forge Commands</div>
+          <div class="cmd-grid">
+            <div class="cmd-row">
+              <code>forge inspect aloha_static_coffee</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_static_coffee')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge quality aloha_static_coffee</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge quality aloha_static_coffee')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="cmd-row">
+              <code>forge convert aloha_static_coffee ./output --format lerobot-v3</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge convert aloha_static_coffee ./output --format lerobot-v3')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+            <div class="cmd-row">
+              <code>forge inspect aloha_static_coffee --demo</code>
+              <button class="copy-btn" onclick="copyCmd(event, this, 'forge inspect aloha_static_coffee --demo')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            
+          </div>
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="no-results" id="noResults" style="display:none">
+  <div class="big">No matches</div>
+  <div>Try adjusting your search or filters.</div>
+</div>
+
+<div class="footer">
+  Generated by <a href="https://github.com/arpitg1304/forge">Forge</a> &mdash; the normalization layer for robotics data
+</div>
+
+</div>
+
+<script>
+function toggleCard(header) {
+  var card = header.closest('.card');
+  card.classList.toggle('open');
+}
+
+function copyCmd(e, btn, text) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(text).then(function() {
+    var orig = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.innerHTML = orig;
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function filterCards() {
+  var query = document.getElementById('search').value.toLowerCase();
+  var fmt = document.getElementById('formatFilter').value;
+  var tag = document.getElementById('tagFilter').value;
+  var emb = document.getElementById('embodimentFilter').value;
+  var demo = document.getElementById('demoFilter').value;
+  var cards = document.querySelectorAll('.card');
+  var visible = 0;
+
+  cards.forEach(function(card) {
+    var show = true;
+    if (query && card.dataset.search.toLowerCase().indexOf(query) === -1) show = false;
+    if (fmt && card.dataset.format !== fmt) show = false;
+    if (tag && card.dataset.tags.indexOf(tag) === -1) show = false;
+    if (emb && card.dataset.embodiment.indexOf(emb) === -1) show = false;
+    if (demo === 'demo' && card.dataset.demo !== 'true') show = false;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  document.getElementById('noResults').style.display = visible === 0 ? '' : 'none';
+  document.getElementById('resultCount').textContent = visible + ' dataset' + (visible !== 1 ? 's' : '');
+}
+
+// Sticky filter bar shadow on scroll
+var filterBar = document.getElementById('filterBar');
+window.addEventListener('scroll', function() {
+  filterBar.classList.toggle('scrolled', window.scrollY > 200);
+});
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('search').blur();
+  }
+});
+</script>
+
+</body>
+</html>

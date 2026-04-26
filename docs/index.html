@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robodata - Robotics Data Toolkit</title>
+<meta name="description" content="Convert, inspect, visualize, score, and discover robotics datasets across every major format.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #080b12;
+    --bg-subtle: #0c1018;
+    --surface: #111827;
+    --surface-hover: #162032;
+    --surface-raised: #1a2540;
+    --border: #1e2d4a;
+    --border-hover: #2d4a7a;
+    --text: #f0f4fc;
+    --text-secondary: #94a3c0;
+    --text-muted: #5e6e8a;
+    --accent: #6c9fff;
+    --accent-bright: #89b4ff;
+    --accent-glow: rgba(108, 159, 255, 0.12);
+    --accent-glow-strong: rgba(108, 159, 255, 0.25);
+    --green: #34d399;
+    --green-dim: rgba(52, 211, 153, 0.12);
+    --orange: #fbbf24;
+    --orange-dim: rgba(251, 191, 36, 0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.12);
+    --rose: #fb7185;
+    --rose-dim: rgba(251, 113, 133, 0.10);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45, 212, 191, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- Nav --- */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8, 11, 18, 0.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .nav.scrolled { border-color: var(--border); }
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--accent-bright);
+    text-decoration: none;
+    letter-spacing: -0.5px;
+  }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-github {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .nav-github:hover { border-color: var(--border-hover); background: var(--surface); }
+
+  /* --- Hero --- */
+  .hero {
+    padding: 10rem 2rem 6rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 600px;
+    background: radial-gradient(ellipse, var(--accent-glow-strong) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 1rem;
+    position: relative;
+    background: linear-gradient(135deg, var(--accent-bright), var(--purple), var(--teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-tagline {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+  .hero-diagram {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.75rem, 1.5vw, 1rem);
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+    line-height: 1.8;
+  }
+  .hero-diagram .fmt { color: var(--accent); }
+  .hero-diagram .arrow { color: var(--green); }
+  .hero-diagram .gear { color: var(--orange); }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #080b12;
+  }
+  .btn-primary:hover {
+    background: var(--accent-bright);
+    box-shadow: 0 0 24px var(--accent-glow-strong);
+  }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+  }
+
+  /* Install bar */
+  .install-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.8rem 0.65rem 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  .install-bar code { color: var(--text-secondary); }
+  .install-bar code .dollar { color: var(--text-muted); user-select: none; }
+  .install-bar code .cmd { color: var(--green); }
+  .install-bar .copy-btn {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+  }
+  .install-bar .copy-btn:hover { color: var(--text); border-color: var(--border-hover); }
+  .install-bar .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  /* --- Sections --- */
+  section {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.75rem;
+  }
+  .section-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Divider */
+  .divider {
+    max-width: 1200px;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* --- Feature Cards --- */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.25rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .feature-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-card.c-blue::before { background: linear-gradient(90deg, var(--accent), var(--teal)); }
+  .feature-card.c-green::before { background: linear-gradient(90deg, var(--green), var(--teal)); }
+  .feature-card.c-purple::before { background: linear-gradient(90deg, var(--purple), var(--accent)); }
+  .feature-card.c-orange::before { background: linear-gradient(90deg, var(--orange), var(--rose)); }
+  .feature-card.c-rose::before { background: linear-gradient(90deg, var(--rose), var(--purple)); }
+  .feature-card.c-teal::before { background: linear-gradient(90deg, var(--teal), var(--green)); }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  .feature-icon.blue { background: var(--accent-glow); color: var(--accent); }
+  .feature-icon.green { background: var(--green-dim); color: var(--green); }
+  .feature-icon.purple { background: var(--purple-dim); color: var(--purple); }
+  .feature-icon.orange { background: var(--orange-dim); color: var(--orange); }
+  .feature-icon.rose { background: var(--rose-dim); color: var(--rose); }
+  .feature-icon.teal { background: var(--teal-dim); color: var(--teal); }
+
+  .feature-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .feature-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .feature-code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .feature-code .prompt { color: var(--text-muted); user-select: none; }
+  .feature-code .cmd { color: var(--green); }
+  .feature-code .arg { color: var(--accent); }
+  .feature-code .flag { color: var(--orange); }
+  .feature-code .comment { color: #3a4a6a; }
+
+  /* --- Format Table --- */
+  .format-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .format-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .format-table th {
+    background: var(--surface-raised);
+    padding: 0.9rem 1.25rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .format-table td {
+    padding: 0.8rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .format-table tr:last-child td { border-bottom: none; }
+  .format-table tr:hover td { background: var(--surface-hover); }
+  .format-table td:first-child { font-weight: 600; color: var(--accent-bright); }
+  .format-table .check { color: var(--green); font-weight: 700; text-align: center; }
+  .format-table .dash { color: var(--text-muted); text-align: center; }
+  .format-table .notes { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* --- Architecture --- */
+  .arch-section {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .arch-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+  .arch-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .arch-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .arch-block:hover { border-color: var(--border-hover); transform: scale(1.03); }
+  .arch-block.reader { color: var(--accent); border-color: rgba(108,159,255,0.3); }
+  .arch-block.writer { color: var(--green); border-color: rgba(52,211,153,0.3); }
+  .arch-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .arch-hub {
+    background: linear-gradient(135deg, var(--accent-glow-strong), var(--purple-dim));
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius);
+    padding: 1.25rem 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent-bright);
+    text-align: center;
+  }
+  .arch-hub-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 0.25rem;
+  }
+  .arch-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    font-weight: 300;
+  }
+
+  /* --- Quick Start --- */
+  .quickstart-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+  .step-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .step-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  /* --- Registry CTA --- */
+  .registry-cta {
+    text-align: center;
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .registry-cta::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 400px;
+    background: radial-gradient(ellipse, var(--purple-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .registry-preview {
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+  }
+  .registry-mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .registry-mini-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .mini-card-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+  .mini-card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .mini-card-format {
+    display: inline-block;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* --- Quality Metrics --- */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .metric-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .metric-pill:hover {
+    border-color: var(--border-hover);
+  }
+  .metric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .metric-pill .name { font-weight: 600; }
+  .metric-pill .desc { color: var(--text-muted); font-size: 0.8rem; }
+
+  /* --- Footer --- */
+  .footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .footer a:hover { color: var(--accent-bright); }
+
+  /* --- Terminal --- */
+  .terminal {
+    background: #0a0e17;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .terminal-bar {
+    background: var(--surface-raised);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .terminal-dot.red { background: #ff5f57; }
+  .terminal-dot.yellow { background: #febc2e; }
+  .terminal-dot.green { background: #28c840; }
+  .terminal-title {
+    flex: 1;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .terminal-body {
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+  }
+  .terminal-body .t-prompt { color: var(--green); }
+  .terminal-body .t-cmd { color: #e2e8f0; }
+  .terminal-body .t-dim { color: #3d4f6f; }
+  .terminal-body .t-cyan { color: var(--accent-bright); }
+  .terminal-body .t-green { color: var(--green); }
+  .terminal-body .t-yellow { color: var(--orange); }
+  .terminal-body .t-bold { color: var(--text); font-weight: 600; }
+  .terminal-body .t-header { color: var(--text); font-weight: 700; }
+  .terminal-body .t-border { color: #2a3a5a; }
+  .terminal-body .t-purple { color: var(--purple); }
+  .terminal-body .t-bar { color: var(--green); }
+  .terminal-body .t-bar-empty { color: #1e2d4a; }
+
+  .demos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .demos-grid .terminal {
+    min-width: 0;
+  }
+  .demo-full {
+    grid-column: 1 / -1;
+  }
+  .demo-img {
+    max-width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    margin-top: 1.5rem;
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    .hero { padding: 8rem 1.5rem 4rem; }
+    section { padding: 3.5rem 1.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .demos-grid { grid-template-columns: 1fr; }
+    .arch-diagram { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); }
+    .nav-links .hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav" id="nav">
+  <a href="#" class="nav-logo">&gt; robodata</a>
+  <div class="nav-links">
+    <a href="#features" class="hide-mobile">Features</a>
+    <a href="#demo" class="hide-mobile">Demos</a>
+    <a href="#formats" class="hide-mobile">Formats</a>
+    <a href="#registry" class="hide-mobile">Registry</a>
+    <a href="registry.html" class="hide-mobile">Browse Datasets</a>
+    <a href="https://github.com/eust-w/robodata" class="nav-github" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-logo">ROBODATA</div>
+  <p class="hero-tagline">
+    The normalization layer for robotics data. Convert, inspect, visualize, score, and discover datasets across every major format.
+  </p>
+  <div class="hero-diagram">
+    <span class="fmt">RLDS</span> &nbsp;<span class="arrow">===</span><span class="gear">\</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="gear">/</span><span class="arrow">===</span>&gt; <span class="fmt">LeRobot</span><br>
+    <span class="fmt">Zarr</span> &nbsp;<span class="arrow">===</span><span class="gear">|</span> <span class="gear">Episode/Frame</span> <span class="gear">|</span><span class="arrow">===</span>&gt; <span class="fmt">RoboDM</span><br>
+    <span class="fmt">HDF5</span> &nbsp;<span class="arrow">===</span><span class="gear">/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="gear">\</span><span class="arrow">===</span>&gt; <span class="fmt">RLDS</span>
+  </div>
+  <div class="hero-actions">
+    <a href="https://github.com/eust-w/robodata" class="btn btn-primary" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+    <a href="registry.html" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Browse Datasets
+    </a>
+  </div>
+  <div class="install-bar">
+    <code><span class="dollar">$ </span><span class="cmd">pip install</span> -e ".[all]"</code>
+    <button class="copy-btn" onclick="copyText(this, 'pip install -e &quot;.[all]&quot;')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Features -->
+<section id="features">
+  <div class="section-header">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything you need for robotics data</h2>
+    <p class="section-subtitle">One toolkit to convert, inspect, score, filter, segment, and browse robotics datasets.</p>
+  </div>
+
+  <div class="features-grid">
+    <!-- Convert -->
+    <div class="feature-card c-blue">
+      <div class="feature-icon blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+      </div>
+      <div class="feature-title">Format Conversion</div>
+      <div class="feature-desc">Convert between RLDS, LeRobot, Zarr, HDF5, Rosbag, and RoboDM with a single command. Hub-and-spoke architecture means O(n) not O(n&sup2;).</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata convert</span> <span class="arg">hf://lerobot/pusht</span> <span class="arg">./output</span> <span class="flag">--format rlds</span>
+      </div>
+    </div>
+
+    <!-- Inspect -->
+    <div class="feature-card c-green">
+      <div class="feature-icon green">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="feature-title">Dataset Inspection</div>
+      <div class="feature-desc">Auto-detect format, list episodes, cameras, action/state dimensions, FPS, and schema. Works with local paths and HuggingFace URIs.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata inspect</span> <span class="arg">hf://lerobot/aloha_sim_cube</span>
+      </div>
+    </div>
+
+    <!-- Quality -->
+    <div class="feature-card c-purple">
+      <div class="feature-icon purple">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="feature-title">Quality Scoring</div>
+      <div class="feature-desc">Score every episode 0-10 with 8 research-backed metrics. Detect jerky demos, dead actions, gripper chatter, and idle periods from proprioception alone.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata quality</span> <span class="arg">./my_dataset</span> <span class="flag">--export report.json</span>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="feature-card c-orange">
+      <div class="feature-icon orange">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      </div>
+      <div class="feature-title">Episode Filtering</div>
+      <div class="feature-desc">Filter datasets by quality score, flags, or episode IDs. Supports dry-run previews and pre-computed quality reports.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata filter</span> <span class="arg">./dataset</span> <span class="arg">./filtered</span> <span class="flag">--min-quality 6.0</span>
+      </div>
+    </div>
+
+    <!-- Segment -->
+    <div class="feature-card c-rose">
+      <div class="feature-icon rose">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      </div>
+      <div class="feature-title">Episode Segmentation</div>
+      <div class="feature-desc">PELT changepoint detection on proprioception signals. Automatically split episodes into sub-skills, regime changes, and idle periods.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata segment</span> <span class="arg">./dataset</span> <span class="flag">--label --plot timeline.png</span>
+      </div>
+    </div>
+
+    <!-- Visualize -->
+    <div class="feature-card c-teal">
+      <div class="feature-icon teal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="feature-title">Web Visualizer</div>
+      <div class="feature-desc">Browser-based viewer with multi-camera support, action/state charts, timeline scrubber, and segment overlay. Zero extra dependencies.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata visualize</span> <span class="arg">pusht</span> <span class="flag">--segment</span>
+      </div>
+    </div>
+
+    <!-- Registry -->
+    <div class="feature-card c-blue">
+      <div class="feature-icon blue">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <div class="feature-title">Dataset Registry</div>
+      <div class="feature-desc">Curated catalog of 23+ prominent robotics datasets. Search, filter, and download by name. Use dataset IDs directly in any command.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata inspect</span> <span class="arg">droid</span> <span class="comment"># resolves via registry</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- See it in Action -->
+<section id="demo">
+  <div class="section-header">
+    <div class="section-label">See it in action</div>
+    <h2 class="section-title">Real output from real datasets</h2>
+    <p class="section-subtitle">Every output below was generated by running Robodata on the <a href="registry.html" style="color:var(--accent)">pusht</a> dataset.</p>
+  </div>
+
+  <div class="demos-grid">
+    <!-- Inspect -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">robodata inspect</div>
+      </div>
+      <div class="terminal-body"><span class="t-prompt">$ </span><span class="t-cmd">robodata inspect hf://lerobot/pusht</span>
+
+<span class="t-bold">Dataset:</span> lerobot/pusht
+<span class="t-bold">Format:</span> <span class="t-green">lerobot-v3</span> (v3.0)
+<span class="t-bold">Episodes:</span> 206
+<span class="t-bold">Total frames:</span> 25,650
+
+<span class="t-header">          Observation Schema</span>
+<span class="t-border">┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┓</span>
+<span class="t-border">┃</span> <span class="t-bold">Field</span>             <span class="t-border">┃</span> <span class="t-bold">Type</span>    <span class="t-border">┃</span> <span class="t-bold">Shape</span> <span class="t-border">┃</span>
+<span class="t-border">┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━┩</span>
+<span class="t-border">│</span> observation.state <span class="t-border">│</span> <span class="t-cyan">float32</span> <span class="t-border">│</span> (2,)  <span class="t-border">│</span>
+<span class="t-border">│</span> next.success      <span class="t-border">│</span> <span class="t-cyan">bool</span>    <span class="t-border">│</span> (1,)  <span class="t-border">│</span>
+<span class="t-border">│</span> next.reward       <span class="t-border">│</span> <span class="t-cyan">float32</span> <span class="t-border">│</span> ()    <span class="t-border">│</span>
+<span class="t-border">│</span> next.done         <span class="t-border">│</span> <span class="t-cyan">bool</span>    <span class="t-border">│</span> ()    <span class="t-border">│</span>
+<span class="t-border">└───────────────────┴─────────┴───────┘</span>
+
+<span class="t-bold">Action:</span> <span class="t-cyan">float32</span> (2,)
+<span class="t-bold">Cameras:</span> image: <span class="t-cyan">96x96</span> (rgb)
+<span class="t-bold">FPS:</span> 10
+<span class="t-bold">Language:</span> <span class="t-green">yes</span> (100% coverage)
+
+<span class="t-dim">Sample: "Push the T-shaped block onto the T-shaped target."</span></div>
+    </div>
+
+    <!-- Quality -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">robodata quality</div>
+      </div>
+      <div class="terminal-body"><span class="t-prompt">$ </span><span class="t-cmd">robodata quality hf://lerobot/pusht</span>
+
+<span class="t-dim">Analyzing episodes... ━━━━━━━━━━━━━━━━━━ 206/206</span>
+
+<span class="t-border">╭──────────</span> <span class="t-header">Quality Report: pusht (206 episodes)</span> <span class="t-border">──────────╮</span>
+<span class="t-border">│</span>                                                       <span class="t-border">│</span>
+<span class="t-border">│</span>  <span class="t-bold">Overall Quality Score: 8.5 / 10</span>                     <span class="t-border">│</span>
+<span class="t-border">│</span>                                                       <span class="t-border">│</span>
+<span class="t-border">│</span>  Smoothness (LDLJ)     <span class="t-bar">███████</span><span class="t-bar-empty">░░░</span>  <span class="t-cyan">0.75</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Dead Actions           <span class="t-bar">█████████</span><span class="t-bar-empty">░</span>  <span class="t-cyan">0.99</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Gripper Health         <span class="t-bar">██████████</span>  <span class="t-cyan">1.00</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Static Detection       <span class="t-bar">██████████</span>  <span class="t-cyan">1.00</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Timestamp Regularity   <span class="t-bar">██████████</span>  <span class="t-cyan">1.00</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Action Saturation      <span class="t-bar">████████</span><span class="t-bar-empty">░░</span>  <span class="t-cyan">0.87</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>  Action Diversity       <span class="t-bar">███</span><span class="t-bar-empty">░░░░░░░</span>  <span class="t-cyan">0.30</span>  <span class="t-green">OK</span>        <span class="t-border">│</span>
+<span class="t-border">│</span>                                                       <span class="t-border">│</span>
+<span class="t-border">╰───────────────────────────────────────────────────────╯</span></div>
+    </div>
+
+    <!-- Segment -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">robodata segment</div>
+      </div>
+      <div class="terminal-body"><span class="t-prompt">$ </span><span class="t-cmd">robodata segment pusht --sample 8 --label --penalty aic</span>
+
+<span class="t-dim">Resolved from registry: PushT (lerobot)</span>
+<span class="t-dim">Format: lerobot-v3 | Signal: observation.state | Penalty: aic</span>
+
+<span class="t-header">                     Segmentation Results</span>
+<span class="t-border">┏━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┓</span>
+<span class="t-border">┃</span> <span class="t-bold">Episode</span>        <span class="t-border">┃</span> <span class="t-bold">Frames</span> <span class="t-border">┃</span> <span class="t-bold">Segments</span> <span class="t-border">┃</span> <span class="t-bold">Changepoints</span>    <span class="t-border">┃</span> <span class="t-bold">Labels</span>                <span class="t-border">┃</span>
+<span class="t-border">┡━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━┩</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000000</span> <span class="t-border">│</span>    161 <span class="t-border">│</span>        <span class="t-green">6</span> <span class="t-border">│</span> <span class="t-dim">20, 33, 63...</span>   <span class="t-border">│</span> <span class="t-yellow">moving -> fine_m...</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000001</span> <span class="t-border">│</span>    118 <span class="t-border">│</span>        <span class="t-green">6</span> <span class="t-border">│</span> <span class="t-dim">13, 34, 49...</span>   <span class="t-border">│</span> <span class="t-yellow">fine_m -> fine_m...</span> <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000002</span> <span class="t-border">│</span>    141 <span class="t-border">│</span>        <span class="t-green">7</span> <span class="t-border">│</span> <span class="t-dim">12, 27, 56...</span>   <span class="t-border">│</span> <span class="t-yellow">moving -> fine_m...</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000003</span> <span class="t-border">│</span>    159 <span class="t-border">│</span>        <span class="t-green">7</span> <span class="t-border">│</span> <span class="t-dim">28, 42, 60...</span>   <span class="t-border">│</span> <span class="t-yellow">fine_m -> fine_m...</span> <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000004</span> <span class="t-border">│</span>    159 <span class="t-border">│</span>        <span class="t-green">8</span> <span class="t-border">│</span> <span class="t-dim">12, 22, 45...</span>   <span class="t-border">│</span> <span class="t-yellow">moving -> fine_m...</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000005</span> <span class="t-border">│</span>    157 <span class="t-border">│</span>        <span class="t-green">6</span> <span class="t-border">│</span> <span class="t-dim">30, 47, 83...</span>   <span class="t-border">│</span> <span class="t-yellow">moving -> moving...</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000006</span> <span class="t-border">│</span>     69 <span class="t-border">│</span>        <span class="t-green">4</span> <span class="t-border">│</span> <span class="t-dim">14, 46, 57</span>      <span class="t-border">│</span> <span class="t-yellow">fine_m -> moving...</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000007</span> <span class="t-border">│</span>    169 <span class="t-border">│</span>        <span class="t-green">7</span> <span class="t-border">│</span> <span class="t-dim">12, 43, 59...</span>   <span class="t-border">│</span> <span class="t-yellow">moving -> fine_m...</span>  <span class="t-border">│</span>
+<span class="t-border">└────────────────┴────────┴──────────┴─────────────────┴───────────────────────┘</span>
+
+<span class="t-border">╭──────────────────</span> <span class="t-header">Summary</span> <span class="t-border">──────────────────╮</span>
+<span class="t-border">│</span>  Episodes: <span class="t-bold">8</span>                                <span class="t-border">│</span>
+<span class="t-border">│</span>  Mean segments/episode: <span class="t-green">6.38</span>                <span class="t-border">│</span>
+<span class="t-border">│</span>  Range: 4 — 8                               <span class="t-border">│</span>
+<span class="t-border">│</span>  Total changepoints: <span class="t-bold">43</span>                     <span class="t-border">│</span>
+<span class="t-border">╰───────────────────────────────────────────╯</span></div>
+    </div>
+
+    <!-- Filter -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">robodata filter</div>
+      </div>
+      <div class="terminal-body"><span class="t-prompt">$ </span><span class="t-cmd">robodata filter ./dataset ./filtered --min-quality 6.0</span>
+
+<span class="t-dim">Filtering episodes... ━━━━━━━━━━━━━━━━━━ 206/206</span>
+
+<span class="t-border">┏━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓</span>
+<span class="t-border">┃</span> <span class="t-bold">Episode</span>        <span class="t-border">┃</span> <span class="t-bold">Score</span> <span class="t-border">┃</span> <span class="t-bold">Flags</span>              <span class="t-border">┃</span> <span class="t-bold">Status</span> <span class="t-border">┃</span>
+<span class="t-border">┡━━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000000</span> <span class="t-border">│</span>  <span class="t-green">8.7</span> <span class="t-border">│</span>                    <span class="t-border">│</span> <span class="t-green">KEEP</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000001</span> <span class="t-border">│</span>  <span class="t-green">9.1</span> <span class="t-border">│</span>                    <span class="t-border">│</span> <span class="t-green">KEEP</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000002</span> <span class="t-border">│</span>  <span class="t-green">8.4</span> <span class="t-border">│</span>                    <span class="t-border">│</span> <span class="t-green">KEEP</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000003</span> <span class="t-border">│</span>  <span class="t-yellow">5.2</span> <span class="t-border">│</span> <span class="t-yellow">jerky, hesitant</span>    <span class="t-border">│</span> <span class="t-yellow">EXCL</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000004</span> <span class="t-border">│</span>  <span class="t-green">7.8</span> <span class="t-border">│</span>                    <span class="t-border">│</span> <span class="t-green">KEEP</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000005</span> <span class="t-border">│</span>  <span class="t-yellow">3.1</span> <span class="t-border">│</span> <span class="t-yellow">mostly_static</span>      <span class="t-border">│</span> <span class="t-yellow">EXCL</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">episode_000006</span> <span class="t-border">│</span>  <span class="t-green">8.9</span> <span class="t-border">│</span>                    <span class="t-border">│</span> <span class="t-green">KEEP</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-dim">  ... 199 more episodes ...</span>                              <span class="t-border">│</span>
+<span class="t-border">└────────────────┴───────┴────────────────────┴────────┘</span>
+
+<span class="t-border">╭──────────────</span> <span class="t-header">Filter Results</span> <span class="t-border">──────────────╮</span>
+<span class="t-border">│</span>                                             <span class="t-border">│</span>
+<span class="t-border">│</span>  Episodes kept:     <span class="t-green">189 / 206</span>                <span class="t-border">│</span>
+<span class="t-border">│</span>  Episodes excluded: <span class="t-yellow">17</span>                       <span class="t-border">│</span>
+<span class="t-border">│</span>  Written to:        <span class="t-cyan">./filtered/</span>              <span class="t-border">│</span>
+<span class="t-border">│</span>                                             <span class="t-border">│</span>
+<span class="t-border">╰─────────────────────────────────────────────╯</span></div>
+    </div>
+
+    <!-- Segmentation Timeline Image -->
+    <div class="demo-full" style="text-align: center;">
+      <div style="margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">
+        <span style="font-family: 'JetBrains Mono', monospace;">robodata segment pusht --label --plot timeline.png</span> — semantic phase labels via proprioception
+      </div>
+      <img src="assets/segment_timeline.png" alt="Segmentation timeline visualization" class="demo-img">
+    </div>
+
+    <!-- Web Visualizer -->
+    <div class="demo-full" style="text-align: center; margin-top: 2rem;">
+      <div style="margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">
+        <span style="font-family: 'JetBrains Mono', monospace;">robodata visualize pusht --segment</span> — browser-based viewer with segment overlay
+      </div>
+
+      <!-- Viewer mockup -->
+      <div style="border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-lg); text-align: left; background: #0f1117; max-width: 900px; margin: 0 auto;">
+        <!-- Header bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: #1a1d2e; border-bottom: 1px solid #2a2d3e;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.95rem; font-weight: 600; color: #6c9fff;">Robodata Viewer</span>
+            <span style="display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.65rem; font-weight: 600; background: #6c9fff; color: #0f1117;">lerobot-v3</span>
+          </div>
+          <span style="font-size: 0.75rem; color: #8b8fa3; font-family: 'JetBrains Mono', monospace;">206 episodes · 25,650 frames · 10 fps</span>
+        </div>
+
+        <!-- Camera area -->
+        <div style="display: flex; align-items: center; justify-content: center; padding: 12px; background: #0f1117; min-height: 160px;">
+          <div style="width: 192px; height: 192px; background: #1a1d2e; border-radius: 4px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style="opacity: 0.5;">
+              <rect x="15" y="8" width="30" height="12" rx="2" fill="#6c9fff" opacity="0.6"/>
+              <rect x="22" y="20" width="16" height="25" rx="2" fill="#6c9fff" opacity="0.4"/>
+              <circle cx="30" cy="52" r="5" fill="#66bb6a" opacity="0.5"/>
+            </svg>
+            <div style="position: absolute; bottom: 4px; left: 6px; font-size: 0.6rem; color: #8b8fa3;">image (96×96)</div>
+          </div>
+        </div>
+
+        <!-- Controls bar -->
+        <div style="display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.8rem; background: #1a1d2e; border-top: 1px solid #2a2d3e; border-bottom: 1px solid #2a2d3e; flex-wrap: wrap;">
+          <span style="background: #252838; border: 1px solid #2a2d3e; border-radius: 4px; padding: 0.2rem 0.4rem; font-size: 0.75rem; color: #e4e4e7; min-width: 80px; text-align: center;">Episode 0</span>
+          <span style="background: #6c9fff; color: #0f1117; border-radius: 4px; padding: 0.2rem 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: default;">Pause</span>
+          <span style="background: #252838; border: 1px solid #2a2d3e; border-radius: 4px; padding: 0.2rem 0.4rem; font-size: 0.75rem; color: #e4e4e7;">1x</span>
+
+          <!-- Timeline with segments -->
+          <div style="flex: 1; min-width: 120px; position: relative; height: 20px;">
+            <!-- Segment colors -->
+            <div style="position: absolute; top: 4px; left: 0; right: 0; height: 12px; border-radius: 3px; overflow: hidden; display: flex;">
+              <div style="width: 12%; background: #29b6f6; opacity: 0.7;" title="moving"></div>
+              <div style="width: 18%; background: #fdd835; opacity: 0.7;" title="fine_manipulation"></div>
+              <div style="width: 15%; background: #29b6f6; opacity: 0.7;" title="moving"></div>
+              <div style="width: 22%; background: #fdd835; opacity: 0.7;" title="fine_manipulation"></div>
+              <div style="width: 10%; background: #29b6f6; opacity: 0.7;" title="moving"></div>
+              <div style="width: 23%; background: #fdd835; opacity: 0.7;" title="fine_manipulation"></div>
+            </div>
+            <!-- Playhead marker -->
+            <div style="position: absolute; top: 2px; left: 35%; width: 2px; height: 16px; background: #ef5350; border-radius: 1px; z-index: 2;"></div>
+          </div>
+
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #8b8fa3;">56 / 161</span>
+          <span style="background: #fdd835; color: #000; border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.7rem; font-weight: 600;">fine_manipulation</span>
+
+          <!-- Legend -->
+          <div style="display: flex; gap: 0.5rem; font-size: 0.65rem; color: #8b8fa3;">
+            <span style="display: flex; align-items: center; gap: 0.2rem;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #29b6f6; display: inline-block;"></span>moving</span>
+            <span style="display: flex; align-items: center; gap: 0.2rem;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #fdd835; display: inline-block;"></span>fine_manipulation</span>
+            <span style="display: flex; align-items: center; gap: 0.2rem;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #9e9e9e; display: inline-block;"></span>idle</span>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div style="display: flex; gap: 2px; padding: 4px; background: #0f1117; height: 80px;">
+          <!-- Actions chart -->
+          <div style="flex: 1; background: #1a1d2e; border-radius: 4px; position: relative; overflow: hidden;">
+            <span style="position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: #8b8fa3;">Actions</span>
+            <svg width="100%" height="100%" viewBox="0 0 200 70" preserveAspectRatio="none" style="padding-top: 14px;">
+              <polyline points="0,50 15,48 30,35 50,20 70,38 90,42 110,15 130,28 150,45 170,30 190,35 200,40" fill="none" stroke="#6c9fff" stroke-width="1.2" opacity="0.7"/>
+              <polyline points="0,40 15,42 30,50 50,35 70,28 90,55 110,45 130,30 150,38 170,50 190,42 200,45" fill="none" stroke="#66bb6a" stroke-width="1.2" opacity="0.7"/>
+              <line x1="70" y1="14" x2="70" y2="65" stroke="#ef5350" stroke-width="1" stroke-dasharray="3,3" opacity="0.8"/>
+            </svg>
+          </div>
+          <!-- States chart -->
+          <div style="flex: 1; background: #1a1d2e; border-radius: 4px; position: relative; overflow: hidden;">
+            <span style="position: absolute; top: 4px; left: 6px; font-size: 0.65rem; color: #8b8fa3;">States</span>
+            <svg width="100%" height="100%" viewBox="0 0 200 70" preserveAspectRatio="none" style="padding-top: 14px;">
+              <polyline points="0,55 20,50 40,45 60,30 80,25 100,28 120,20 140,35 160,40 180,30 200,25" fill="none" stroke="#6c9fff" stroke-width="1.2" opacity="0.7"/>
+              <polyline points="0,45 20,48 40,40 60,45 80,30 100,35 120,40 140,25 160,30 180,45 200,40" fill="none" stroke="#66bb6a" stroke-width="1.2" opacity="0.7"/>
+              <line x1="70" y1="14" x2="70" y2="65" stroke="#ef5350" stroke-width="1" stroke-dasharray="3,3" opacity="0.8"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Keyboard hint -->
+        <div style="text-align: right; padding: 2px 8px 4px; font-size: 0.55rem; color: #5e6e8a;">
+          Space: Play/Pause &nbsp; ←→: Frame &nbsp; ↑↓: Episode &nbsp; [/]: Speed
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Architecture -->
+<section class="arch-section" id="architecture">
+  <div class="section-header">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">Hub-and-spoke, not N&times;M</h2>
+    <p class="section-subtitle">Add a reader, get all writers for free. Add a writer, get all readers for free.</p>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-col">
+      <div class="arch-block reader">RLDS / Open-X</div>
+      <div class="arch-block reader">LeRobot v2/v3</div>
+      <div class="arch-block reader">GR00T</div>
+      <div class="arch-block reader">Zarr</div>
+      <div class="arch-block reader">HDF5</div>
+      <div class="arch-block reader">Rosbag / MCAP</div>
+      <div class="arch-block reader">RoboDM</div>
+    </div>
+
+    <div class="arch-arrow">&rarr;</div>
+
+    <div class="arch-center">
+      <div class="arch-hub">
+        Episode / Frame
+        <div class="arch-hub-sub">Intermediate Representation</div>
+      </div>
+    </div>
+
+    <div class="arch-arrow">&rarr;</div>
+
+    <div class="arch-col">
+      <div class="arch-block writer">RLDS</div>
+      <div class="arch-block writer">LeRobot v2/v3</div>
+      <div class="arch-block writer">RoboDM</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Format Table -->
+<section id="formats">
+  <div class="section-header">
+    <div class="section-label">Compatibility</div>
+    <h2 class="section-title">Format support matrix</h2>
+    <p class="section-subtitle">Read, write, and visualize across every major robotics data format.</p>
+  </div>
+
+  <div class="format-table-wrapper">
+    <table class="format-table">
+      <thead>
+        <tr>
+          <th>Format</th>
+          <th style="text-align:center">Read</th>
+          <th style="text-align:center">Write</th>
+          <th style="text-align:center">Visualize</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>RLDS</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="notes">Open-X, TensorFlow Datasets</td>
+        </tr>
+        <tr>
+          <td>LeRobot v2/v3</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="notes">HuggingFace, Parquet + MP4</td>
+        </tr>
+        <tr>
+          <td>GR00T</td>
+          <td class="check">&check;</td>
+          <td class="dash">&mdash;</td>
+          <td class="check">&check;</td>
+          <td class="notes">NVIDIA Isaac, LeRobot v2 with embodiment metadata</td>
+        </tr>
+        <tr>
+          <td>RoboDM</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="check">&check;</td>
+          <td class="notes">Berkeley's .vla format, up to 70x compression</td>
+        </tr>
+        <tr>
+          <td>Zarr</td>
+          <td class="check">&check;</td>
+          <td class="dash">&mdash;</td>
+          <td class="check">&check;</td>
+          <td class="notes">Diffusion Policy, UMI</td>
+        </tr>
+        <tr>
+          <td>HDF5</td>
+          <td class="check">&check;</td>
+          <td class="dash">&mdash;</td>
+          <td class="check">&check;</td>
+          <td class="notes">robomimic, ACT/ALOHA</td>
+        </tr>
+        <tr>
+          <td>Rosbag</td>
+          <td class="check">&check;</td>
+          <td class="dash">&mdash;</td>
+          <td class="check">&check;</td>
+          <td class="notes">ROS1 .bag, ROS2 MCAP</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Quality Metrics -->
+<section id="quality">
+  <div class="section-header">
+    <div class="section-label">Quality</div>
+    <h2 class="section-title">8 research-backed metrics</h2>
+    <p class="section-subtitle">Score every episode 0-10 from proprioception data alone. No video processing needed.</p>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--accent)"></div>
+      <div><div class="name">Smoothness (LDLJ)</div><div class="desc">Jerk-based smoothness</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--rose)"></div>
+      <div><div class="name">Dead Actions</div><div class="desc">Zero/constant detection</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--orange)"></div>
+      <div><div class="name">Gripper Chatter</div><div class="desc">Rapid open/close cycles</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--purple)"></div>
+      <div><div class="name">Static Detection</div><div class="desc">Idle period detection</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--green)"></div>
+      <div><div class="name">Timestamp Regularity</div><div class="desc">Dropped frames &amp; jitter</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--teal)"></div>
+      <div><div class="name">Action Saturation</div><div class="desc">Time at hardware limits</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--accent-bright)"></div>
+      <div><div class="name">Action Entropy</div><div class="desc">Diversity vs repetition</div></div>
+    </div>
+    <div class="metric-pill">
+      <div class="metric-dot" style="background: var(--rose)"></div>
+      <div><div class="name">Path Length</div><div class="desc">Wandering &amp; hesitation</div></div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 2rem;">
+    <div class="feature-code" style="display: inline-block; text-align: left; max-width: 600px;">
+      <span class="prompt">$ </span><span class="cmd">robodata quality</span> <span class="arg">hf://lerobot/aloha_sim_cube</span> <span class="flag">--export report.json</span><br>
+      <span class="prompt">$ </span><span class="cmd">robodata filter</span> <span class="arg">./dataset</span> <span class="arg">./filtered</span> <span class="flag">--min-quality 6.0</span> <span class="comment"># remove bad demos</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Registry CTA -->
+<section class="registry-cta" id="registry">
+  <div class="section-header">
+    <div class="section-label">Registry</div>
+    <h2 class="section-title">23+ curated robotics datasets</h2>
+    <p class="section-subtitle">Browse, search, and download by name. Use dataset IDs directly in any command.</p>
+  </div>
+
+  <div class="registry-preview">
+    <div class="registry-mini-card">
+      <div class="mini-card-name">DROID</div>
+      <div class="mini-card-meta">~76,000 episodes</div>
+      <div class="mini-card-format">rlds</div>
+    </div>
+    <div class="registry-mini-card">
+      <div class="mini-card-name">Bridge V2</div>
+      <div class="mini-card-meta">~60,096 episodes</div>
+      <div class="mini-card-format">rlds</div>
+    </div>
+    <div class="registry-mini-card">
+      <div class="mini-card-name">Open-X Embodiment</div>
+      <div class="mini-card-meta">~2,200,000 episodes</div>
+      <div class="mini-card-format">rlds</div>
+    </div>
+    <div class="registry-mini-card">
+      <div class="mini-card-name">AgiBot World</div>
+      <div class="mini-card-meta">~1,000,000 episodes</div>
+      <div class="mini-card-format">lerobot-v2</div>
+    </div>
+    <div class="registry-mini-card">
+      <div class="mini-card-name">RoboSet</div>
+      <div class="mini-card-meta">~100,000 episodes</div>
+      <div class="mini-card-format">hdf5</div>
+    </div>
+    <div class="registry-mini-card">
+      <div class="mini-card-name">ALOHA</div>
+      <div class="mini-card-meta">Bi-manual demos</div>
+      <div class="mini-card-format">lerobot</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 2.5rem; position: relative;">
+    <a href="registry.html" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Browse All Datasets
+    </a>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Quick Start -->
+<section id="quickstart">
+  <div class="section-header">
+    <div class="section-label">Get Started</div>
+    <h2 class="section-title">Up and running in 60 seconds</h2>
+  </div>
+
+  <div class="quickstart-steps">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">Install</div>
+      <div class="step-desc">Clone the repo and install with pip.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">git clone</span> <span class="arg">https://github.com/eust-w/robodata.git</span><br>
+        <span class="prompt">$ </span><span class="cmd">cd</span> robodata<br>
+        <span class="prompt">$ </span><span class="cmd">pip install</span> -e <span class="arg">".[all]"</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">Try a demo dataset</div>
+      <div class="step-desc">Download, inspect, and score a small dataset in one command.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata demo</span><br>
+        <span class="comment"># Downloads pusht, runs inspect + quality</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">Convert and go</div>
+      <div class="step-desc">Convert to any format you need for training.</div>
+      <div class="feature-code">
+        <span class="prompt">$ </span><span class="cmd">robodata convert</span> <span class="arg">droid</span> <span class="arg">./output</span> <span class="flag">--format lerobot-v3</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<div class="footer">
+  <p>
+    <strong>Robodata</strong> &mdash; MIT License &mdash;
+    <a href="https://github.com/eust-w/robodata">GitHub</a> &middot;
+    <a href="registry.html">Dataset Registry</a>
+  </p>
+</div>
+
+<script>
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.classList.add('copied');
+    setTimeout(function() { btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Nav scroll effect
+window.addEventListener('scroll', function() {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    var target = document.querySelector(this.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+
+</body>
+</html>

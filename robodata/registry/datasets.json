@@ -1,0 +1,611 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-03-08",
+  "datasets": {
+    "open_x_embodiment": {
+      "id": "open_x_embodiment",
+      "name": "Open X-Embodiment",
+      "description": "Aggregate dataset spanning 60+ constituent datasets, 22 robot platforms, and 527 manipulation skills. The largest open robotics dataset collection.",
+      "paper_url": "https://arxiv.org/abs/2310.08864",
+      "license": "Apache-2.0",
+      "format": "rlds",
+      "embodiment": ["google_robot", "franka", "widowx", "jaco", "sawyer", "ur5", "kuka"],
+      "task_types": ["pick_place", "push", "pour", "wipe", "drawer", "multi_task"],
+      "scale": {
+        "episodes": 2400000,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics",
+          "notes": "Each constituent dataset is a separate RLDS dataset under this bucket"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "jxu124/OpenX-Embodiment"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task", "large_scale", "language_conditioned"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "droid": {
+      "id": "droid",
+      "name": "DROID",
+      "description": "Large-scale in-the-wild manipulation dataset with 76K+ episodes across 564 scenes and 52 buildings. Multi-camera Franka teleoperation.",
+      "paper_url": "https://arxiv.org/abs/2403.12945",
+      "license": "CC-BY-4.0",
+      "format": "rlds",
+      "embodiment": ["franka"],
+      "task_types": ["pick_place", "push", "wipe", "drawer", "multi_task"],
+      "scale": {
+        "episodes": 76000,
+        "hours": 350.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/droid",
+          "notes": "RLDS format"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "cadene/droid",
+          "notes": "Full dataset in LeRobot format (~400GB)"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task", "large_scale"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "bridge_v2": {
+      "id": "bridge_v2",
+      "name": "Bridge V2",
+      "description": "Large-scale WidowX tabletop manipulation dataset with 53K+ episodes across 24 environments and 13 skills.",
+      "paper_url": "https://arxiv.org/abs/2308.12952",
+      "license": "MIT",
+      "format": "rlds",
+      "embodiment": ["widowx"],
+      "task_types": ["pick_place", "push", "wipe", "drawer"],
+      "scale": {
+        "episodes": 53192,
+        "hours": 105.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/bridge/0.1.0",
+          "notes": "RLDS format"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "IPEC-COMMUNITY/bridge_orig_lerobot",
+          "notes": "LeRobot format conversion"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task", "large_scale"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "roboset": {
+      "id": "roboset",
+      "name": "RoboSet",
+      "description": "Franka multi-task dataset with 12 skills across 38 kitchen tasks. Includes teleoperated, kinesthetic, and heuristic demonstrations.",
+      "paper_url": "https://arxiv.org/abs/2309.01918",
+      "license": "MIT",
+      "format": "rlds",
+      "embodiment": ["franka"],
+      "task_types": ["pick_place", "pour", "wipe", "multi_task"],
+      "scale": {
+        "episodes": 100000,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/robo_set",
+          "notes": "RLDS format via TFDS"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "jdvakil/RoboSet-Teleoperation",
+          "notes": "Teleoperation subset only"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "aloha_sim_transfer_cube": {
+      "id": "aloha_sim_transfer_cube",
+      "name": "ALOHA Sim Transfer Cube",
+      "description": "Simulated bimanual cube transfer task with 50 human-collected episodes. Ideal for quick ALOHA experiments.",
+      "paper_url": "https://arxiv.org/abs/2304.13705",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["aloha"],
+      "task_types": ["pick_place"],
+      "scale": {
+        "episodes": 50,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/aloha_sim_transfer_cube_human"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 50,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "bi_manual", "simulation", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "aloha_sim_insertion": {
+      "id": "aloha_sim_insertion",
+      "name": "ALOHA Sim Insertion",
+      "description": "Simulated bimanual peg insertion task with 50 human-collected episodes.",
+      "paper_url": "https://arxiv.org/abs/2304.13705",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["aloha"],
+      "task_types": ["insertion"],
+      "scale": {
+        "episodes": 50,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/aloha_sim_insertion_human"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 50,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "bi_manual", "simulation", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "aloha_static_tape": {
+      "id": "aloha_static_tape",
+      "name": "ALOHA Static Tape",
+      "description": "Real bimanual tape dispensing task with 50 teleoperated episodes on static ALOHA.",
+      "paper_url": "https://arxiv.org/abs/2304.13705",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["aloha"],
+      "task_types": ["manipulation"],
+      "scale": {
+        "episodes": 50,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/aloha_static_tape"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 50,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "bi_manual", "real_world", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "aloha_mobile_cabinet": {
+      "id": "aloha_mobile_cabinet",
+      "name": "ALOHA Mobile Cabinet",
+      "description": "Real mobile bimanual cabinet manipulation with 85 episodes on Mobile ALOHA.",
+      "paper_url": "https://arxiv.org/abs/2401.02117",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["aloha"],
+      "task_types": ["drawer", "manipulation"],
+      "scale": {
+        "episodes": 85,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/aloha_mobile_cabinet"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 85,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "bi_manual", "mobile_manipulation", "real_world", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "agibot_world_alpha": {
+      "id": "agibot_world_alpha",
+      "name": "AgiBot World Alpha",
+      "description": "Large-scale dual-arm humanoid manipulation dataset with 92K+ trajectories across 217 tasks and 87 skills.",
+      "paper_url": "https://arxiv.org/abs/2503.06669",
+      "license": "CC-BY-NC-SA-4.0",
+      "format": "lerobot-v2",
+      "embodiment": ["agibot_g1"],
+      "task_types": ["pick_place", "pour", "multi_task"],
+      "scale": {
+        "episodes": 92214,
+        "hours": 2976.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "agibot-world/AgiBotWorld-Alpha"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "bi_manual", "humanoid", "real_world", "multi_task", "large_scale"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "rt1_fractal": {
+      "id": "rt1_fractal",
+      "name": "RT-1 / Fractal",
+      "description": "Google Robot tabletop manipulation dataset with 87K+ episodes, used to train RT-1. 17 object categories.",
+      "paper_url": "https://arxiv.org/abs/2212.06817",
+      "license": "Apache-2.0",
+      "format": "rlds",
+      "embodiment": ["google_robot"],
+      "task_types": ["pick_place", "push"],
+      "scale": {
+        "episodes": 87212,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/fractal20220817_data/0.1.0"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task", "large_scale"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "rh20t": {
+      "id": "rh20t",
+      "name": "RH20T",
+      "description": "Contact-rich manipulation dataset with 110K+ episodes across 4 robots and 147 skills. Includes force/torque and audio.",
+      "paper_url": "https://arxiv.org/abs/2307.00595",
+      "license": "Research use",
+      "format": "other",
+      "embodiment": ["franka", "ur5", "kuka", "flexiv"],
+      "task_types": ["pick_place", "manipulation", "multi_task"],
+      "scale": {
+        "episodes": 110000,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "fredfang/RH20T"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "contact_rich", "real_world", "multi_task", "large_scale"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "libero": {
+      "id": "libero",
+      "name": "LIBERO",
+      "description": "Simulated continual learning benchmark with 130 tasks across 4 suites (Spatial, Object, Goal, LIBERO-10).",
+      "paper_url": "https://arxiv.org/abs/2306.03310",
+      "license": "CC-BY-4.0",
+      "format": "hdf5",
+      "embodiment": ["franka"],
+      "task_types": ["pick_place", "drawer", "multi_task"],
+      "scale": {
+        "episodes": 4500,
+        "hours": 10.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "physical-intelligence/libero"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "simulation", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "furniturebench": {
+      "id": "furniturebench",
+      "name": "FurnitureBench",
+      "description": "Long-horizon furniture assembly benchmark with 5K+ episodes across 8 assembly tasks at 3 difficulty levels.",
+      "paper_url": "https://arxiv.org/abs/2305.12821",
+      "license": "Research use",
+      "format": "other",
+      "embodiment": ["franka"],
+      "task_types": ["assembly"],
+      "scale": {
+        "episodes": 5000,
+        "hours": 200.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "http",
+          "uri": "https://furniturebench.github.io/",
+          "notes": "Download links on project page (Google Drive)"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "rlbench": {
+      "id": "rlbench",
+      "name": "RLBench",
+      "description": "Simulated benchmark with 100 manipulation tasks in CoppeliaSim. Procedurally generated demonstrations.",
+      "paper_url": "https://arxiv.org/abs/1909.12271",
+      "license": "Research use",
+      "format": "other",
+      "embodiment": ["franka"],
+      "task_types": ["pick_place", "push", "drawer", "multi_task"],
+      "scale": {
+        "episodes": 10000,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "hqfang/rlbench-18-tasks",
+          "notes": "Community upload of 18-task subset"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "simulation", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "metaworld": {
+      "id": "metaworld",
+      "name": "MetaWorld",
+      "description": "Simulated Sawyer benchmark with 50 tabletop manipulation tasks for meta/multi-task learning.",
+      "paper_url": "https://arxiv.org/abs/1910.10897",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["sawyer"],
+      "task_types": ["pick_place", "push", "drawer", "assembly", "multi_task"],
+      "scale": {
+        "episodes": 50000,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/metaworld_mt50"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "simulation", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "language_table": {
+      "id": "language_table",
+      "name": "Language Table",
+      "description": "Language-conditioned block pushing with 600K+ real episodes and open-vocabulary instructions.",
+      "paper_url": "https://arxiv.org/abs/2210.06407",
+      "license": "Apache-2.0",
+      "format": "rlds",
+      "embodiment": ["xarm"],
+      "task_types": ["push"],
+      "scale": {
+        "episodes": 600000,
+        "hours": 2700.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/language_table"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "language_conditioned", "large_scale", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "bc_z": {
+      "id": "bc_z",
+      "name": "BC-Z",
+      "description": "Language-conditioned WidowX manipulation with 26K episodes across 100 tasks for zero-shot generalization.",
+      "paper_url": "https://arxiv.org/abs/2202.02005",
+      "license": "Apache-2.0",
+      "format": "rlds",
+      "embodiment": ["widowx"],
+      "task_types": ["pick_place", "push", "multi_task"],
+      "scale": {
+        "episodes": 25877,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/bc_z"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "language_conditioned", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "jaco_play": {
+      "id": "jaco_play",
+      "name": "Jaco Play",
+      "description": "Teleoperated play data on Kinova Jaco 2 with language annotations. 1K+ tabletop manipulation episodes.",
+      "paper_url": "https://arxiv.org/abs/2310.08864",
+      "license": "Apache-2.0",
+      "format": "rlds",
+      "embodiment": ["jaco"],
+      "task_types": ["manipulation"],
+      "scale": {
+        "episodes": 1085,
+        "hours": 3.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/jaco_play"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/jaco_play"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "language_conditioned", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "taco_play": {
+      "id": "taco_play",
+      "name": "TACO Play",
+      "description": "Task-agnostic Franka play data with language annotations. 3.6K episodes of tabletop manipulation.",
+      "paper_url": "https://arxiv.org/abs/2209.08959",
+      "license": "CC-BY-4.0",
+      "format": "rlds",
+      "embodiment": ["franka"],
+      "task_types": ["manipulation", "multi_task"],
+      "scale": {
+        "episodes": 3600,
+        "hours": 7.0,
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/taco_play"
+        },
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/taco_play"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world", "language_conditioned", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "stanford_hydra": {
+      "id": "stanford_hydra",
+      "name": "Stanford Hydra",
+      "description": "Multi-arm manipulation dataset from Stanford ILIAD lab, converted to RLDS format.",
+      "license": "Research use",
+      "format": "rlds",
+      "embodiment": ["franka"],
+      "task_types": ["manipulation"],
+      "scale": {
+        "approximate": true
+      },
+      "sources": [
+        {
+          "type": "gcs",
+          "uri": "gs://gresearch/robotics/stanford_hydra_dataset_converted_externally_to_rlds"
+        }
+      ],
+      "demo_suitable": false,
+      "tags": ["manipulation", "real_world"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "pusht": {
+      "id": "pusht",
+      "name": "PushT",
+      "description": "Simple 2D T-block pushing task with 206 episodes. The canonical LeRobot demo dataset.",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["simulated"],
+      "task_types": ["push"],
+      "scale": {
+        "episodes": 206,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/pusht"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 206,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "simulation", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08",
+      "notes": "206 episodes — slightly above 100 but universally used as a tiny demo dataset"
+    },
+    "droid_100": {
+      "id": "droid_100",
+      "name": "DROID 100",
+      "description": "100-episode subset of DROID in LeRobot format. Ideal for quick experiments and CI.",
+      "paper_url": "https://arxiv.org/abs/2403.12945",
+      "license": "CC-BY-4.0",
+      "format": "lerobot",
+      "embodiment": ["franka"],
+      "task_types": ["pick_place", "manipulation"],
+      "scale": {
+        "episodes": 100,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/droid_100"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 100,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "real_world", "multi_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    },
+    "aloha_static_coffee": {
+      "id": "aloha_static_coffee",
+      "name": "ALOHA Static Coffee",
+      "description": "Real bimanual coffee preparation task with 50 teleoperated episodes on static ALOHA.",
+      "paper_url": "https://arxiv.org/abs/2304.13705",
+      "license": "MIT",
+      "format": "lerobot",
+      "embodiment": ["aloha"],
+      "task_types": ["manipulation"],
+      "scale": {
+        "episodes": 50,
+        "approximate": false
+      },
+      "sources": [
+        {
+          "type": "hf_hub",
+          "uri": "lerobot/aloha_static_coffee"
+        }
+      ],
+      "demo_suitable": true,
+      "demo_episodes": 50,
+      "demo_source_index": 0,
+      "tags": ["manipulation", "bi_manual", "real_world", "single_task"],
+      "verified": false,
+      "added_at": "2026-03-08"
+    }
+  }
+}

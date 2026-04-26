@@ -1,0 +1,41 @@
+# Example Robodata conversion configuration
+#
+# Usage: robodata convert ./input ./output --config examples/conversion_config.yaml
+
+# Target format (required)
+target_format: lerobot-v3
+
+# Robot metadata
+fps: 30
+robot_type: franka
+
+# Camera name mapping
+# Maps source camera names to target names
+# Supports fuzzy matching (strips common prefixes like 'steps/observation/')
+cameras:
+  agentview_image: front_cam
+  robot0_eye_in_hand_image: wrist_cam
+
+# Field mapping (optional)
+# Maps source field paths to target field names
+# Useful for standardizing field names across datasets
+fields:
+  action: steps/action
+  state:
+    source: observation/robot_state
+    target: state
+  gripper:
+    source: observation/gripper_state
+    target: gripper_state
+    transform: binary  # normalize to 0/1
+
+# Video encoding settings (optional)
+video:
+  codec: h264
+  crf: 23
+  compress: true
+
+# Behavior settings (optional)
+fail_on_error: false
+skip_existing: true
+include_depth: true
