@@ -1,248 +1,166 @@
-<p align="center">
-<pre>
-███████╗ ██████╗ ██████╗  ██████╗ ███████╗
-██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
-█████╗  ██║   ██║██████╔╝██║  ███╗█████╗
-██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝
-██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
-╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-</pre>
-<h2>⚒ Robotics Data Toolkit ⚒</h2>
-<i>Convert, inspect, visualize, score, and discover robotics datasets across every major format.</i>
-<br><br>
-<a href="#"><img alt="Website" src="https://img.shields.io/badge/website-live-6c9fff?style=flat-square"></a>
-<a href="#"><img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square"></a>
-<br><br>
-<code>RLDS ═══╗         ╔═══► LeRobot</code><br>
-<code>Zarr ═══╬════⚙════╬═══► RoboDM</code><br>
-<code>HDF5 ═══╝         ╚═══► RLDS</code>
-</p>
+<div align="center">
+  <img src="docs/readme/hero.svg" alt="Robodata — workflow overview" width="100%">
+  <h1>Robodata</h1>
+  <p><strong>Read, convert and understand robot demonstrations.</strong></p>
+  <p><img alt="Python: 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776ab?style=flat-square">
+  <img alt="Status: Alpha" src="https://img.shields.io/badge/Status-Alpha-8b7fd1?style=flat-square">
+  <img alt="Core: Episode / Frame" src="https://img.shields.io/badge/Core-Episode%20%2F%20Frame-6366f1?style=flat-square"></p>
+  <p>
+    <a href="#overview">Overview</a> ·
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#workflow">Workflow</a> ·
+    <a href="#validation">Validation</a> ·
+    <a href="#documentation">Documentation</a>
+  </p>
+  <p><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a></p>
+</div>
 
-Convert between robotics dataset formats with one command. Score demonstration quality with research-backed metrics. Segment episodes into sub-skills with changepoint detection.
+---
 
-| Format | Read | Write | Visualize | Notes |
-|--------|:----:|:-----:|:---------:|-------|
-| RLDS | ✓ | ✓ | ✓ | Open-X, TensorFlow Datasets |
-| LeRobot v2/v3 | ✓ | ✓ | ✓ | HuggingFace, Parquet + MP4 |
-| GR00T | ✓ | - | ✓ | NVIDIA Isaac, LeRobot v2 with embodiment metadata |
-| RoboDM | ✓ | ✓ | ✓ | Berkeley's .vla format, up to 70x compression* |
-| Zarr | ✓ | - | ✓ | Diffusion Policy, UMI |
-| HDF5 | ✓ | - | ✓ | robomimic, ACT/ALOHA |
-| Rosbag | ✓ | - | ✓ | ROS1 .bag, ROS2 MCAP |
+<a id="overview"></a>
+## A common language for robot data
 
-*\*RoboDM requires manual installation from GitHub (see below)*
+**Robodata** brings dataset inspection, format conversion, quality scoring and episode segmentation into one Python toolkit. Readers and writers meet at a shared `Episode` / `Frame` representation, so a new adapter can reuse the rest of the pipeline.
 
-See [docs/model_formats.md](docs/model_formats.md) for which models (Octo, OpenVLA, ACT, Diffusion Policy, etc.) use which format. See [docs/format_reference.md](docs/format_reference.md) for detailed format specifications.
+| Move between formats | Understand demonstrations | Find useful data |
+| :--- | :--- | :--- |
+| RLDS, LeRobot, Zarr, HDF5, Rosbag and RoboDM adapters | Inspect schemas, score quality and identify temporal phases | Browse a dataset registry, filter episodes and inspect outputs |
 
-## Why Robodata?
+### Episode segmentation at a glance
 
-Every robotics lab has their own data format: Open-X uses RLDS, HuggingFace uses LeRobot, Diffusion Policy uses Zarr, robomimic uses HDF5. Want to train Octo on your ALOHA data? Write a converter. Want to use LeRobot on Open-X datasets? Write another.
+![Example episode segmentation timeline](docs/assets/segment_timeline.png)
 
-Robodata uses a hub-and-spoke architecture — one intermediate representation, O(n) format support:
+*Existing repository example. Segmentation detects changes in proprioceptive signals; phase labels are not a guarantee of semantic task understanding.*
 
-```
-Any Reader → Episode/Frame → Any Writer
-```
+<a id="quick-start"></a>
+## Quick start
 
-Add a reader, get all writers for free. Add a writer, get all readers for free. No N×M conversion logic. See [docs/architecture.md](docs/architecture.md) for details.
+> [!WARNING]
+> **Known startup blocker:** the current [validation module](robodata/validation/engine.py) shadows `dataclasses.field` with a class attribute. A CLI smoke check fails during import with `TypeError: 'NoneType' object is not callable`. The commands below document the intended interface; resolve this code issue before expecting them to run. This documentation update does not change the implementation.
 
-## Quick Start
+Requires **Python 3.10+**. Install the core first; format adapters have separate optional dependencies.
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
+git clone https://github.com/eust-w/robodata.git
 cd robodata
-pip install -e ".[all]"
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+
+robodata --help
+robodata registry list
 ```
 
-### RoboDM Support (Optional)
+For LeRobot / HDF5 workflows and local visualization:
 
-RoboDM requires manual installation from GitHub (PyPI version has a codec bug):
+```bash
+python -m pip install -e '.[lerobot,hdf5,video,visualize]'
+robodata inspect /path/to/dataset
+robodata convert /path/to/hdf5_dataset ./converted --format lerobot-v3
+```
+
+Replace the paths with an actual supported dataset. For Hub sources, additionally install `.[hub]`; remote datasets may require their own authentication, downloads and terms of access.
+
+<a id="workflow"></a>
+## One intermediate representation
+
+```text
+RLDS · LeRobot · Zarr · HDF5 · Rosbag · RoboDM
+                         │
+                       Reader
+                         ▼
+                   Episode / Frame
+                         │
+            inspect · quality · filter · segment
+                         │
+                       Writer
+                         ▼
+                 converted dataset
+```
+
+### Format adapters
+
+| Format | Read | Write | Dependency group / note |
+| :--- | :---: | :---: | :--- |
+| RLDS | ✓ | ✓ | `rlds` — TensorFlow / TFDS |
+| LeRobot v2 / v3 | ✓ | ✓ | `lerobot`, plus video dependencies as needed |
+| GR00T | ✓ | — | LeRobot-style inputs with embodiment metadata |
+| Zarr | ✓ | — | `zarr` |
+| HDF5 | ✓ | — | `hdf5` |
+| ROS bags | ✓ | — | `rosbag` |
+| RoboDM | ✓ | ✓ | `robodm`; see the upstream installation note below |
+
+See [format details](docs/format_reference.md) and [model-to-format mapping](docs/model_formats.md) before choosing a conversion target.
+
+<details>
+<summary><strong>Optional RoboDM installation</strong></summary>
+
+The existing integration notes recommend installing RoboDM from source when the PyPI codec path is unsuitable:
 
 ```bash
 git clone https://github.com/BerkeleyAutomation/robodm.git
-pip install -e robodm
+python -m pip install -e ./robodm
 ```
 
-### Usage
+RoboDM is an external dependency; its code and datasets retain their upstream terms.
+
+</details>
+
+### Inspect → score → filter → segment
 
 ```bash
-# See what's in a dataset
 robodata inspect /path/to/dataset
+robodata quality /path/to/dataset --export quality.json
+robodata filter /path/to/dataset --min-quality 6.0
+robodata filter /path/to/dataset ./filtered --min-quality 6.0
 
-# Convert it
-robodata convert /path/to/rlds ./output --format lerobot-v3
-robodata convert hf://lerobot/pusht ./pusht_robodm --format robodm
+python -m pip install -e '.[segment,visualize]'
+robodata segment /path/to/dataset --export segments.json --plot timeline.png
 ```
 
-Works with HuggingFace Hub too:
+The filter command without an output directory previews the selection. Quality scores are diagnostics based on motion signals, not task-success labels or proof that a policy will improve.
 
-```bash
-robodata inspect hf://lerobot/pusht
-robodata convert hf://lerobot/pusht ./output --format lerobot-v3
-```
+| Analysis | What it helps inspect |
+| :--- | :--- |
+| Smoothness and path length | Abrupt motion, wandering and hesitation |
+| Dead actions and static periods | Inactive or near-constant segments |
+| Gripper chatter and saturation | Rapid switching and time at action limits |
+| Timestamp regularity and entropy | Timing quality and action diversity |
 
-## Python API
+### Python API
 
 ```python
 import robodata
 
-# Inspect
 info = robodata.inspect("/path/to/dataset")
 print(info.format, info.num_episodes, info.cameras)
-
-# Convert
-robodata.convert(
-    "/path/to/rlds",
-    "/path/to/output",
-    target_format="lerobot-v3"
-)
+robodata.convert("/path/to/source", "./output", target_format="lerobot-v3")
 ```
 
-## Quality Metrics
-
-Automated episode-level quality scoring from proprioception data alone — no video processing needed.
-
-```bash
-robodata quality ./my_dataset
-robodata quality hf://lerobot/aloha_sim_cube --export report.json
-```
-
-Scores each episode 0-10 based on 8 research-backed metrics:
-
-- **Smoothness (LDLJ)** — jerk-based smoothness from motor control literature (Hogan & Sternad, 2009)
-- **Dead actions** — zero/constant action detection (Kim et al. "OpenVLA", 2024)
-- **Gripper chatter** — rapid open/close transitions (Sakr et al., 2024)
-- **Static detection** — idle periods where the robot isn't moving (Liu et al. "SCIZOR", 2025)
-- **Timestamp regularity** — dropped frames and frequency jitter
-- **Action saturation** — time spent at hardware limits
-- **Action entropy** — diversity vs repetitiveness (Belkhale et al. "DemInf", 2025)
-- **Path length** — wandering/hesitation in joint space
-
-See [robodata/quality/README.md](robodata/quality/README.md) for full metric details, paper references, and how to add new metrics.
-
-## Episode Filtering
-
-Filter datasets by quality score, flags, or episode IDs. Supports dry-run previews and pre-computed quality reports.
+<a id="validation"></a>
+## Validation and current scope
 
 ```bash
-robodata filter ./my_dataset --min-quality 6.0                          # Dry-run preview
-robodata filter ./my_dataset ./filtered --min-quality 6.0               # Write filtered dataset
-robodata filter ./my_dataset ./filtered --exclude-flags jerky,mostly_static
-robodata filter ./my_dataset ./filtered --from-report report.json       # Skip re-analysis
-```
-
-See [robodata/filter/README.md](robodata/filter/README.md) for full details.
-
-## Dataset Registry
-
-A curated catalog of 23+ prominent robotics datasets — browse, search, and download by name instead of memorizing URIs.
-
-```bash
-# Browse all datasets
-robodata registry list
-
-# Open an interactive HTML browser with filtering
-robodata registry list --html
-
-# Filter by format, embodiment, or tags
-robodata registry list --format rlds --embodiment franka
-robodata registry list --tag manipulation --demo
-
-# Get detailed info on a dataset
-robodata registry info droid
-
-# Search across names, tags, embodiments, and task types
-robodata registry search "franka manipulation"
-
-# Validate the registry (for contributors)
+python -m pip install -e '.[dev]'
+python -m pytest
 robodata registry validate
 ```
 
-### Registry ID Resolution
+Tests requiring a format backend need that backend's extras. This is an **alpha** toolkit: validate camera mappings, timestamps, action/state semantics and a small converted sample before using a full dataset for training.
 
-Use dataset IDs directly in any command — no need for full paths or URIs:
+Planned work includes dataset merging/splitting, broader depth preservation, a GR00T writer and automated source/output equivalence checks. These are not implied by the current format table.
 
-```bash
-robodata inspect droid          # resolves to hf://lerobot/droid
-robodata quality pusht          # resolves to hf://lerobot/pusht
-robodata convert droid ./output --format lerobot-v3
-```
+<a id="documentation"></a>
+## Documentation map
 
-### Quick Start with `robodata demo`
+| Guide | Focus |
+| :--- | :--- |
+| [CLI reference](docs/cli.md) · [Configuration](docs/configuration.md) | Commands and conversion settings |
+| [Architecture](docs/architecture.md) | Shared data model and adapter design |
+| [Quality metrics](robodata/quality/README.md) | Metric definitions and references |
+| [Filtering](robodata/filter/README.md) · [Segmentation](robodata/segment/README.md) | Episode selection and temporal analysis |
+| [Registry contributions](robodata/registry/CONTRIBUTING.md) | Add or update dataset entries |
 
-Download a small demo dataset, inspect it, and run quality scoring — all in one command:
+## License status
 
-```bash
-robodata demo                   # uses pusht by default
-robodata demo aloha_sim_cube    # or pick any demo-suitable dataset
-```
-
-See [robodata/registry/CONTRIBUTING.md](robodata/registry/CONTRIBUTING.md) for how to add new datasets to the registry.
-
-## Episode Segmentation
-
-Automatic episode segmentation via PELT changepoint detection on proprioception signals. Splits episodes into contiguous phases (sub-skills, regime changes, idle periods) without video processing.
-
-```bash
-robodata segment ./my_dataset
-robodata segment hf://lerobot/droid_100 --export segments.json --plot timeline.png
-robodata segment ./my_dataset --signal action --penalty bic --cost-model rbf
-robodata segment ./my_dataset --sample 20
-```
-
-Detects where the statistical properties of the proprio signal change abruptly — e.g., transitions between reaching, grasping, and placing phases. Configurable cost models (`rbf`, `l2`, `l1`), penalty methods (`bic`, `aic`, or numeric), and signal selection (`observation.state`, `action`, `qpos`).
-
-See [robodata/segment/README.md](robodata/segment/README.md) for full details.
-
-## CLI Reference
-
-See [docs/cli.md](docs/cli.md) for the full command reference including:
-
-- `robodata inspect` - Dataset inspection and schema analysis
-- `robodata convert` - Format conversion with camera mapping
-- `robodata visualize` - Interactive dataset viewer
-- `robodata quality` - Episode-level quality scoring ([details](robodata/quality/README.md))
-- `robodata filter` - Quality-based episode filtering ([details](robodata/filter/README.md))
-- `robodata registry` - Browse and search the dataset registry
-- `robodata demo` - Quick-start with a demo dataset
-- `robodata segment` - Episode segmentation via changepoint detection ([details](robodata/segment/README.md))
-- `robodata stats` - Compute dataset statistics
-- `robodata export-video` - Extract camera videos as MP4
-- `robodata hub` - Search and download from HuggingFace
-
-## Configuration
-
-For complex conversions, use a YAML config:
-
-```bash
-robodata inspect my_dataset/ --generate-config config.yaml
-robodata convert my_dataset/ output/ --config config.yaml
-```
-
-See [docs/configuration.md](docs/configuration.md) for details.
-
-## Roadmap
-
-Planned features (contributions welcome!):
-
-- [ ] **Dataset merging** - Combine multiple datasets into one (`robodata merge ds1/ ds2/ --output combined/`)
-- [ ] **Train/val/test splitting** - Split datasets with stratification (`--split 80/10/10`)
-- [x] **Dataset registry** - Curated catalog of 23+ robotics datasets with CLI browser and HTML viewer
-- [ ] **Streaming reads** - Process HuggingFace datasets without full download
-- [x] **Episode filtering** - Filter by quality score, flags, or episode IDs (`robodata filter --min-quality 6.0`)
-- [ ] **Depth/point cloud support** - Preserve depth streams from RLDS/Open-X
-- [ ] **GR00T writer** - Write to NVIDIA Isaac GR00T training format (read support complete)
-- [ ] **Distributed conversion** - Scale to 100K+ episode datasets across nodes
-- [ ] **Conversion verification** - Automated diff between source and converted data
-
-## Development
-
-```bash
-make venv && source .venv/bin/activate
-make install-dev
-make test
-```
-
-## License
-
-MIT
+The earlier README described the project as MIT, but this checkout does not contain a root `LICENSE` file. A complete license text still needs to be added by the maintainer. Dataset and dependency licenses remain separate.
